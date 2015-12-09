@@ -1,0 +1,9 @@
+from python_functions.handle_h5.handle_h5 import read_h5, save_h5
+
+path = "/home/stamylew/volumes/trimaps/50cube1_trimap_t_05.h5"
+key = "data"
+outpath = "/home/stamylew/volumes/trimaps/50cube1_trimap_t_55.h5"
+outkey = "data"
+data = read_h5(path, key)
+slice = data[45,:,:]
+save_h5(data, outpath, outkey, None)
