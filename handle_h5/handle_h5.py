@@ -25,3 +25,7 @@ def save_h5(data, outpath, key="", comp=""):
     if comp=="":
         comp = "lzf"
     vg.impex.writeHDF5(data, outpath, key, compression = comp)
+
+if __name__ == '__main__':
+    print "start"
+    print "done"

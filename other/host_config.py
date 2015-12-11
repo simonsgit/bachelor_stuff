@@ -11,8 +11,8 @@ def assign_path(hostname):
         test_folder = "/home/stamylew/test_folder"
 
     elif hostname == "sirherny":
-        ilp_folder = "/home/stamylew/sirherny/mnt/data/simon/ilastik_projects/"
-        volumes_folder = "/home/stamylew/sirherny/mnt/data/simon/volumes/"
+        ilp_folder = "/mnt/data/simon/ilastik_projects/"
+        volumes_folder = "/mnt/data/simon/volumes/"
         ilastik_path = "/mnt/homes/stamyalew/software/ilastik-1.1.8.post1-Linux/run_ilastik.sh"
         autocontext_path = "/mnt/homes/stamyalew/software/autocontext/autocontext.py"
         test_folder = "/mnt/homes/stamyalew/test_folder"
