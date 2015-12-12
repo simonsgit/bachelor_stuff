@@ -117,7 +117,7 @@ def test(ilp, files, gt, labels="", loops=3, weights="", repeats=1, outpath= "",
     test_folder_path = assign_path(hostname)[4]
 
     if t_cache == "":
-        t_cache = test_folder_path + "/t-cache"
+        t_cache = test_folder_path + "/t_cache"
 
     if p_cache == "":
         p_cache = test_folder_path + "/p_cache"

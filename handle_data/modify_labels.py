@@ -31,9 +31,9 @@ def reduce_labels_in_ilp(ilpfile, labels):
     ilp_copy = create_copy(ilpfile)
 
     #work on copy file
-    manipulate_me = ILP(ilp_copy, "/home/stamylew/delme")
+    manipulate_me = ILP(ilp_copy, "/home/stamyalew/delme")
     blocks, block_slices = manipulate_me.get_labels(0) # 0 selects the first data set imported in the ilp
-    save_h5(blocks, "/home/stamylew/delme/blocks.h5", "data", None)
+    #save_h5(blocks, "/home/stamylew/delme/blocks.h5", "data", None)
     #gather amount of labeled pixels
     nolb = []
     for block in blocks:
@@ -56,7 +56,7 @@ def reduce_labels_in_ilp(ilpfile, labels):
     for block in blocks:
         new_block = filter_all_labels(block, percentage)
         new_blocks.append(new_block)
-    save_h5(new_blocks, "/home/stamylew/delme/new_blocks.h5", "data", None)
+    #save_h5(new_blocks, "/home/stamylew/delme/new_blocks.h5", "data", None)
 
     #check new blocks
     nolnb = []
@@ -64,7 +64,7 @@ def reduce_labels_in_ilp(ilpfile, labels):
         nolinb = get_number_of_labels(block)
         nolnb.append(nolinb)
     print
-    print "unique elements of new blocks:", np.unique(new_blocks)
+    #print "unique elements of new blocks:", np.unique(new_blocks)
 
     nonl = float(np.sum(nolnb))
     print

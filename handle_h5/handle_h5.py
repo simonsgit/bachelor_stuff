@@ -11,9 +11,12 @@ import h5py as h
 def read_h5(path, key=""):
     inpath_isstring = isinstance(path, basestring)
     assert inpath_isstring, "inpath should be string"
-    f = h.File(path, "r")
+    f = h.File(path)
+    
     if key=="":
         key = f.keys()[0]
+    else:
+	assert key in f.keys(), "the given key "+key+" is not in the file "+ path
     data = f[key][...]
     f.close()
     return data

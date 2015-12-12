@@ -12,6 +12,7 @@ from python_functions.handle_data.dclass import predict_class
 from python_functions.quality.quality import adjust_predict, unswap
 import numpy as np
 import matplotlib.pyplot as plt
+import vigra as vg
 
 def archive_qdata(p_cache, gt, qdata, repeat, outpath, slice = 0):
     """ archive quality data
@@ -24,8 +25,11 @@ def archive_qdata(p_cache, gt, qdata, repeat, outpath, slice = 0):
 
     #get predicition file
     prob_file = [x for x in os.listdir(p_cache) if ("probs" in x)]
+    print 
+    print "prob_file",prob_file
     predict_data = read_h5(p_cache + "/" + prob_file[0], "exported_data")
-
+    print  
+    print "predict_data", predict_data.shape
     #save quality data
     gt_data = read_h5(gt)
     #q_data  = np.zeros((repeats, 4), dtype = np.float64)
@@ -37,7 +41,6 @@ def archive_qdata(p_cache, gt, qdata, repeat, outpath, slice = 0):
     #save_h5(q_data, outpath, "a_p_r_auc", None)
 
     #show and save prediction and gt images
-    predict.show_images()
     im_outpath = outpath.split(".")[-2]
     predict_im_outpath = im_outpath + ".png"
     gt_im_outpath = im_outpath + "_gt.png"

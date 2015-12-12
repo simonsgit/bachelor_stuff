@@ -55,9 +55,7 @@ def exclude_ignore_label(gt, predict, ignore_label = 0):
     :return:    relevant_gt is the groundtruth without the pixels that have been labeled with the ignore label,
                 same for the predicition data
     """
-    #check
-    plt.imshow(predict[0])
-    plt.imshow(gt[0])
+
 
     relevant_data = gt != ignore_label
     relevant_gt = gt[relevant_data]

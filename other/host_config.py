@@ -14,7 +14,7 @@ def assign_path(hostname):
         ilp_folder = "/mnt/data/simon/ilastik_projects/"
         volumes_folder = "/mnt/data/simon/volumes/"
         ilastik_path = "/mnt/homes/stamyalew/software/ilastik-1.1.8.post1-Linux/run_ilastik.sh"
-        autocontext_path = "/mnt/homes/stamyalew/software/autocontext/autocontext.py"
+        autocontext_path = "/mnt/homes/stamyalew/src/autocontext/autocontext.py"
         test_folder = "/mnt/homes/stamyalew/test_folder"
     else:
         raise Exception("No valid hostname given.")
