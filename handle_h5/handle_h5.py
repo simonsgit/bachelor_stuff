@@ -12,8 +12,11 @@ def read_h5(path, key=""):
     inpath_isstring = isinstance(path, basestring)
     assert inpath_isstring, "inpath should be string"
     f = h.File(path, "r")
+
     if key=="":
         key = f.keys()[0]
+    else:
+        assert key in f.keys(), "the given key "+ key +" is not in the file "+ path
     data = f[key][...]
     f.close()
     return data
@@ -28,4 +31,5 @@ def save_h5(data, outpath, key="", comp=""):
 
 if __name__ == '__main__':
     print "start"
+    vg.impex.readHDF5("file:///mnt/data/simon/volumes/groundtruth/dense_groundtruth/50cube1_dense_gt.h5")
     print "done"

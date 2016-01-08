@@ -45,8 +45,8 @@ if __name__ == '__main__':
 
     ilp_folder = assign_path(hostname)[0]
     volumes_folder = assign_path(hostname)[1]
-    ilp_file = ilp_folder + "100p_cube1.ilp"
-    files = volumes_folder + "test_data/100p_cube2.h5/data"
-    gt = volumes_folder + "groundtruth/trimaps/100p_cube2_trimap_t_05.h5"
-    multi_loops(3, ilp_file, files, gt, 4000, "", 1)
+    ilp_file = ilp_folder + "500p_cube1.ilp"
+    files = volumes_folder + "test_data/500p_cube2.h5/data"
+    gt = volumes_folder + "groundtruth/trimaps/500p_cube2_trimap_t_05.h5"
+    multi_loops(10, ilp_file, files, gt, 1000, "", 10)
     #multi_labels([100, 500, 1000, 5000, 10000, 20000],ilp_file, files, gt, 3, "", 10)

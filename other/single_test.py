@@ -142,17 +142,23 @@ def test(ilp, files, gt, labels="", loops=3, weights="", repeats=1, outpath= "",
     filesplit = files.split(".")[-2]
     filename = filesplit.split("/")[-1]
     file_dir = output + "/" + filename
+    #file_dir = "/home/stamylew/delme"
 
     if not os.path.exists(file_dir):
+        print "Output folder did not exist."
         os.mkdir(file_dir)
+        print "New one named " + file_dir+ " was created."
 
     q_outpath = file_dir + "/n_" + str(loops) + "_l_" + str(label_tag) + "_w_" + weight_tag
     q_data_outpath = q_outpath + "/n_" + str(loops) + "_l_" + str(labels) + "_w_" + weight_tag + ".h5"
-
+    #q_data_outpath = "/home/stamylew/delme/test.h5"
     if not os.path.exists(q_outpath):
+        print "Output h5 file did not exist"
         os.mkdir(q_outpath)
+        print "New one named " + q_outpath + "was created."
         qdata = np.zeros((repeats, 4), dtype= np.float)
     else:
+        print "Output h5 existed. Extra rows will be created."
         old_qdata = read_h5(q_data_outpath, "a_p_r_auc")
         qdata = np.zeros((repeats +  old_qdata.shape[0], 4), dtype= np.float)
         qdata[repeats::] = old_qdata
@@ -201,7 +207,9 @@ if __name__ == '__main__':
     # files = "/home/stamylew/volumes/test_data/500p_cube2.h5"
     # gt = "/home/stamylew/volumes/groundtruth/trimaps/500p_cube2_trimap_t_05.h5"
 
-    test(ilp_file, files, gt, 2000, 1, "", 1)
+
+    #
+    test(ilp_file, files, gt, 20000, 5, "", 9)
 
     print
     print "done"

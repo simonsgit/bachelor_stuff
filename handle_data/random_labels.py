@@ -63,14 +63,12 @@ def get_number_of_labels(data):
     
     
 def limit_label(data, limit):
-    print "limit"
-    print limit
-    print    
+    print
+    print "limit:", limit
     #get number of labeled pixels
     nol = get_number_of_labels(data)
-    print "nol of pixels in raw"
-    print nol
-    print 
+    print
+    print "nol of pixels in raw:", nol
     #make nol float typ
     nol = nol.astype(np.float128)
     #reduces number labeled pixels if limit < nol
@@ -87,10 +85,14 @@ def limit_label(data, limit):
 
 
 if __name__ == '__main__':
-    a = "/home/stamylew/volumes/trimaps/50cube1_tri.h5"
+    a = "/home/stamylew/volumes/groundtruth/trimaps/500p_cube1_trimap_t_05.h5"
     b = read_h5(a)
-    print "working file:", np.unique(b)
+    print get_number_of_labels(b)
+    #print "working file:", np.unique(b)
     c = filter_all_labels(b, 0.5)
+    print get_number_of_labels(c)
+    d = limit_label(b, 10000)
+    print get_number_of_labels(d)
     
 #    print "real number" 
 #    print get_number_of_labels(g)
@@ -106,29 +108,29 @@ if __name__ == '__main__':
 #    print "nol in result"
 #    print get_number_of_labels(m)
 #    save_h5(m, "/home/stamylew/volumes/trimaps/50cube1_tri_1500.h5","1500labels")
-    print "not working file:"
-    f = "/home/stamylew/ilastik_projects/smallcubes_copy.ilp"
-    g = ILP(f, "/home/stamylew/delme")
-    print g.get_labels(0)
-    h, t = g.get_labels(0)
-    i = h[0]
-    print i.shape
-    j = filter_all_labels(i, 0.5)
-    print j.shape
-
-    plt.figure()
-    plt.imshow(b[0,:,:])
-
-    plt.figure()
-    plt.imshow(c[0,:,:])
-    
-    plt.figure()
-    plt.imshow(i[0,:,:,0])
-    
-    plt.figure()
-    plt.imshow(j[0,:,:,0])
-    
-    plt.show()
+#     print "not working file:"
+#     f = "/home/stamylew/ilastik_projects/smallcubes_copy.ilp"
+#     g = ILP(f, "/home/stamylew/delme")
+#     print g.get_labels(0)
+#     h, t = g.get_labels(0)
+#     i = h[0]
+#     print i.shape
+#     j = filter_all_labels(i, 0.5)
+#     print j.shape
+#
+#     plt.figure()
+#     plt.imshow(b[0,:,:])
+#
+#     plt.figure()
+#     plt.imshow(c[0,:,:])
+#
+#     plt.figure()
+#     plt.imshow(i[0,:,:,0])
+#
+#     plt.figure()
+#     plt.imshow(j[0,:,:,0])
+#
+#     plt.show()
 #    Label_number = np.unique(data)[i]
 #    #lol=[]
 #    
