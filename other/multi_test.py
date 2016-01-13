@@ -48,5 +48,5 @@ if __name__ == '__main__':
     ilp_file = ilp_folder + "500p_cube1.ilp"
     files = volumes_folder + "test_data/500p_cube2.h5/data"
     gt = volumes_folder + "groundtruth/trimaps/500p_cube2_trimap_t_05.h5"
-    multi_loops(10, ilp_file, files, gt, 1000, "", 10)
+    multi_loops(1, ilp_file, files, gt, 2000, "", 4)
     #multi_labels([100, 500, 1000, 5000, 10000, 20000],ilp_file, files, gt, 3, "", 10)

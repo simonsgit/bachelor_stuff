@@ -20,23 +20,33 @@ def filter_label(data, percentage):
     :param percentage:
     :return:
     """
-#TODO: Fix that there is always one more labeled pixel than wanted
+
     #create random array    
     random = np.random.random(data.shape) 
+
     #randomization of labels
     rol = data * random
+
     #determine amount of labeled pixels
     nolp = np.sum(data)
+    print "nolp", nolp
+
     #determine amount of all pixels
-    total = data.shape[0] * data.shape[1] * data.shape[2]
+    assert data.size == data.shape[0] * data.shape[1] * data.shape[2]
+    total = data.size
+
     #calculate percentage of labeled pixels
-    q = (total - percentage * nolp) / total * 100
+    q = (total - round(percentage * nolp)) / total * 100
+
     #calculate percentile value
     limit = np.percentile(rol, q)
+
     #filter all entries <= percentile value
     sol = rol > limit
+
     #convert bool to int
     sol = sol.astype(np.uint8)
+    print "number of labels", get_number_of_labels(sol)
     return sol
         
     
@@ -45,6 +55,7 @@ def filter_all_labels(data, percentage):
     lol = []
     #get individual label data
     for i in np.unique(data):
+        print "label", i
         g = select_label(data, i)
         j = filter_label(g, percentage)*i
         lol.append(j)
@@ -89,8 +100,8 @@ if __name__ == '__main__':
     b = read_h5(a)
     print get_number_of_labels(b)
     #print "working file:", np.unique(b)
-    c = filter_all_labels(b, 0.5)
-    print get_number_of_labels(c)
+    # c = filter_all_labels(b, 0.5)
+    # print get_number_of_labels(c)
     d = limit_label(b, 10000)
     print get_number_of_labels(d)
     

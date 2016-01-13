@@ -52,9 +52,9 @@ if __name__ == "__main__":
     #comparison = "/home/stamylew/volumes/trimaps/50cube2_tri.h5"
     #comparison = "/home/stamylew/volumes/training_data/smallcubes.h5"
 
-    raw = vigra.readHDF5("/home/stamylew/volumes/test_data/500p_cube2_raw.h5", "data")
+    raw = vigra.readHDF5("/home/stamylew/volumes/groundtruth/trimaps/500p_cube1_trimap_t_05.h5", "data")
 
-    predict = vigra.readHDF5("/home/stamylew/volumes/test_data/500p_cube2_memb.h5", "memb")
+    predict = vigra.readHDF5("/home/stamylew/volumes/groundtruth/trimaps/test.h5", "data")
     print predict.shape
 
     tm = vigra.readHDF5("/home/stamylew/volumes/groundtruth/trimaps/500p_cube2_trimap_t_05.h5", "data")
@@ -76,22 +76,22 @@ if __name__ == "__main__":
     v = Viewer()
 
     #raw layer
-    v.addGrayscaleLayer(raw, name="raw")
+    v.addGrayscaleLayer(raw, name="test")
 
     #predict layer
     #predict = np.array(predict[:,:,:,0,0]) * 255
     #v.addColorTableLayer(predict.astype(np.float32), name="prediction")
-    v.addGrayscaleLayer(predict.astype(np.float32), name="prediction")
+    v.addGrayscaleLayer(predict.astype(np.float32), name="org")
 
     #trimap layer
     tm = np.array(tm)*255
     print np.unique(tm)
-    v.addColorTableLayer(tm.astype(np.float32), name="trimap")
+    #v.addColorTableLayer(tm.astype(np.float32), name="trimap")
     #v.addGrayscaleLayer(tm.astype(np.float32), name="tm")
 
 
     #gt layer
-    v.addGrayscaleLayer(gt.astype(np.float32), name="groundtruth")
+    #v.addGrayscaleLayer(gt.astype(np.float32), name="groundtruth")
 
     v.showMaximized()
     app.exec_()    

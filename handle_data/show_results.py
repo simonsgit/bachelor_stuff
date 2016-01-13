@@ -100,8 +100,8 @@ def create_plot(input, outpath = "/home/stamylew/test_folder/q_data/100p_cube2/d
     return xpoints, apoints, ppoints, rpoints
 
 if __name__ == '__main__':
-    path = "/home/stamylew/test_folder/q_data/100p_cube2/"
+    path = "/home/stamylew/test_folder/q_data/500p_cube2/"
     #print sort_qdata(path, "l_1000_")
-    q = sort_qdata(path, "n_10_")
+    q = sort_qdata(path, "l_1000_")
     create_plot(q,)
     #create_plot(r)

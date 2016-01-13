@@ -201,15 +201,15 @@ if __name__ == '__main__':
     ilp_folder = assign_path(hostname)[0]
     volumes_folder = assign_path(hostname)[1]
     ilp_file = ilp_folder + "100p_cube1.ilp"
-    files = volumes_folder + "test_data/100p_cube2.h5/data"
-    gt = volumes_folder + "groundtruth/trimaps/100p_cube2_trimap_t_05.h5"
+    files = volumes_folder + "test_data/500p_cube2.h5/data"
+    gt = volumes_folder + "groundtruth/trimaps/500p_cube2_trimap_t_05.h5"
     # ilp_file = "/home/stamylew/ilastik_projects/500p_cube1.ilp"
     # files = "/home/stamylew/volumes/test_data/500p_cube2.h5"
     # gt = "/home/stamylew/volumes/groundtruth/trimaps/500p_cube2_trimap_t_05.h5"
 
 
     #
-    test(ilp_file, files, gt, 20000, 5, "", 9)
+    test(ilp_file, files, gt, 2000, 1, "", 4)
 
     print
     print "done"
