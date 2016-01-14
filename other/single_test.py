@@ -209,7 +209,7 @@ if __name__ == '__main__':
 
 
     #
-    test(ilp_file, files, gt, 2000, 1, "", 4)
+    test(ilp_file, files, gt, 1000, 1, "", 5)
 
     print
     print "done"
