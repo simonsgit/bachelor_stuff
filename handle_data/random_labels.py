@@ -29,7 +29,7 @@ def filter_label(data, percentage):
 
     #determine amount of labeled pixels
     nolp = np.sum(data)
-    print "nolp", nolp
+    #print "nolp", nolp
 
     #determine amount of all pixels
     assert data.size == data.shape[0] * data.shape[1] * data.shape[2]
@@ -46,7 +46,7 @@ def filter_label(data, percentage):
 
     #convert bool to int
     sol = sol.astype(np.uint8)
-    print "number of labels", get_number_of_labels(sol)
+    #print "number of labels", get_number_of_labels(sol)
     return sol
         
     
@@ -55,7 +55,7 @@ def filter_all_labels(data, percentage):
     lol = []
     #get individual label data
     for i in np.unique(data):
-        print "label", i
+        #print "label", i
         g = select_label(data, i)
         j = filter_label(g, percentage)*i
         lol.append(j)

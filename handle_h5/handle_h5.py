@@ -5,8 +5,10 @@ Created on Fri Sep 18 11:21:48 2015
 @author: stamylew
 """
 
-import vigra as vg
+
 import h5py as h
+import numpy as np
+from h5py import Group
 
 def read_h5(path, key=""):
     inpath_isstring = isinstance(path, basestring)
@@ -27,9 +29,14 @@ def save_h5(data, outpath, key="", comp=""):
         key = "data"
     if comp=="":
         comp = "lzf"
-    vg.impex.writeHDF5(data, outpath, key, compression = comp)
+    g = h.File(outpath, "w")
+    g.create_dataset(key, data= data, compression="lzf")
+    #g.create_dataset(key, (100,100,100), compression= "lzf")
+    #vg.impex.writeHDF5(data, outpath, key, compression = comp)
 
 if __name__ == '__main__':
-    print "start"
-    vg.impex.readHDF5("file:///mnt/data/simon/volumes/groundtruth/dense_groundtruth/50cube1_dense_gt.h5")
+
+    #vg.impex.readHDF5("file:///mnt/data/simon/volumes/groundtruth/dense_groundtruth/50cube1_dense_gt.h5")
+    dset = read_h5("/home/stamylew/volumes/test_data/500p_cube2.h5")
+    save_h5(dset, "/home/stamylew/delme/test.h5")
     print "done"
