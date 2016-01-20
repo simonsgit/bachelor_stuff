@@ -9,6 +9,7 @@ Created on Fri Sep 18 11:21:48 2015
 import h5py as h
 import numpy as np
 from h5py import Group
+import vigra as vg
 
 def read_h5(path, key=""):
     inpath_isstring = isinstance(path, basestring)
@@ -29,10 +30,16 @@ def save_h5(data, outpath, key="", comp=""):
         key = "data"
     if comp=="":
         comp = "lzf"
+    vg.impex.writeHDF5(data, outpath, key, compression = comp)
+
+def save_h5_wo_vigra(data, outpath, key="", comp=""):
+    #TODO: doesn't work IOError Unable to create file (Unable to truncate a file which is already open)
+    if key =="":
+        key = "data"
+    if comp=="":
+        comp = "lzf"
     g = h.File(outpath, "w")
-    g.create_dataset(key, data= data, compression="lzf")
-    #g.create_dataset(key, (100,100,100), compression= "lzf")
-    #vg.impex.writeHDF5(data, outpath, key, compression = comp)
+    g.create_dataset(key, data= data, compression= comp)
 
 if __name__ == '__main__':
 

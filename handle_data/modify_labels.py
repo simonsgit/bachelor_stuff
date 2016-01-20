@@ -39,11 +39,11 @@ def reduce_labels_in_ilp(ilpfile, labels):
         nolib = get_number_of_labels(block)
         nolb.append(nolib)
     print
-    print "number of blocks:", len(blocks)
+    print "amount of label blocks:", len(blocks)
     noal = float(np.sum(nolb))
     #noal = noal.astype(np.float64)
     print
-    print "number of all labels:", noal
+    print "amount of all labels:", noal
     labels = float(labels)
 
     #limit amount of labeled pixels
@@ -62,12 +62,12 @@ def reduce_labels_in_ilp(ilpfile, labels):
     for block in new_blocks:
         nolinb = get_number_of_labels(block)
         nolnb.append(nolinb)
-    print
-    print "unique elements of new blocks:", np.unique(new_blocks)
+#    print "unique elements of new blocks:", np.unique(new_blocks)
 
     nonl = float(np.sum(nolnb))
     print
-    print "number of new labels:", nonl
+    print "reduced amount of labels:", nonl
+#    assert labels == nonl
 
     manipulate_me.replace_labels(0, new_blocks, block_slices, delete_old_blocks=True)
 
@@ -90,13 +90,14 @@ def check_ilp_labels(ilp_path):
     for i in range(1, len(list)):
         al += list[i]
     print al
+
 if __name__ == '__main__':
     trimap_path = "/home/stamylew/volumes/groundtruth/trimaps/500p_cube1_trimap_t_05.h5"
-    trimap_path = "/home/stamylew/volumes/groundtruth/trimaps/100p_cube1_trimap_t_05.h5"
+    #trimap_path = "/home/stamylew/volumes/groundtruth/trimaps/100p_cube1_trimap_t_05.h5"
     trimap_data = read_h5(trimap_path, "data")
-    print get_number_of_labels(trimap_data)
-    ilp_path = "/home/stamylew/ilastik_projects/500p_cube1.ilp"
-    ilp_path = "/home/stamylew/ilastik_projects/100p_cube1.ilp"
-    mod_ilp = modify_labels_of_ilp(ilp_path, 518335)
+    print "trimap labeled pixel amount", get_number_of_labels(trimap_data)
+    ilp_path = "/home/stamylew/ilastik_projects/500p_cube1_hand_drawn.ilp"
+    #ilp_path = "/home/stamylew/ilastik_projects/100p_cube1.ilp"
+    mod_ilp = modify_labels_of_ilp(ilp_path, 1000)
     check_ilp_labels(mod_ilp)
 

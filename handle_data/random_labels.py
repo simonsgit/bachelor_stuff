@@ -11,6 +11,8 @@ from autocontext.core.ilp import ILP
 import matplotlib.pyplot as plt
 
 def select_label(data, label_number):
+    # print
+    # print "label: ", label_number
     selected_label = data == label_number
     return selected_label
 

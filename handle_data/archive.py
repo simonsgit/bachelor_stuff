@@ -33,7 +33,11 @@ def archive_qdata(p_cache, gt, qdata, repeat, outpath, slice = 0):
     predict = predict_class(gt_data, predict_data)
     qdata[repeat] = predict.quality
     print
-    print "quality:", predict.quality
+    print "quality:"
+    print "accuracy:", predict.quality[0]
+    print "precision:", predict.quality[1]
+    print "recall:", predict.quality[2]
+    print "roc auc score:", predict.quality[3]
     #save_h5(q_data, outpath, "a_p_r_auc", None)
 
     #show and save prediction and gt images
