@@ -11,16 +11,22 @@ from autocontext.core.ilp import ILP
 import matplotlib.pyplot as plt
 
 def select_label(data, label_number):
-    # print
-    # print "label: ", label_number
+    """Creates a bool array where entries with the given label number  as value are True and everything else False
+    :param data:            data array
+    :param label_number:    label number
+    :return: Bool array
+    """
+
+    #create bool array
     selected_label = data == label_number
+
     return selected_label
 
 def filter_label(data, percentage):
-    """
-    :param data:
-    :param percentage:
-    :return:
+    """Filters the data so that the given percentage of all entries remains non-zero
+    :param data:        data array
+    :param percentage:  percentage of entries that remains non-zero
+    :return: Filtered data array
     """
 
     #create random array    
@@ -34,11 +40,10 @@ def filter_label(data, percentage):
     #print "nolp", nolp
 
     #determine amount of all pixels
-    assert data.size == data.shape[0] * data.shape[1] * data.shape[2]
     total = data.size
 
     #calculate percentage of labeled pixels
-    q = (total - round(percentage * nolp)) / total * 100
+    q = (total - round(percentage * nolp, 0)) / total * 100
 
     #calculate percentile value
     limit = np.percentile(rol, q)
@@ -48,19 +53,27 @@ def filter_label(data, percentage):
 
     #convert bool to int
     sol = sol.astype(np.uint8)
-    #print "number of labels", get_number_of_labels(sol)
+
     return sol
         
     
 def filter_all_labels(data, percentage):
-    #list to contain label data
+    """Filters over all labels
+    :param data: data array
+    :param percentage: percentage of entries that remains non-zero
+    :return: Filtered data array
+    """
+
+    #create list to contain label data
     lol = []
+
     #get individual label data
     for i in np.unique(data):
         #print "label", i
         g = select_label(data, i)
         j = filter_label(g, percentage)*i
         lol.append(j)
+
     #combine individual label data
     al = lol[0]
     for i in range(1, len(lol)):
@@ -68,32 +81,46 @@ def filter_all_labels(data, percentage):
     return al
 
 def get_number_of_labels(data):
+    """Returns the amount of non-zero entries
+    :param data: data array
+    :return: Amount of labeled pixels in data
+    """
+
     #filter all labeled pixels
-    labeled_pixels = data > 0
+    labeled_pixels = data != 0
+
     #count all labeled pixels
     number_of_labels = np.sum(labeled_pixels)
-    return number_of_labels 
+
+    return number_of_labels
     
     
-def limit_label(data, limit):
-    print
-    print "limit:", limit
+def limit_label(data, limit, nolp=""):
+    """Limits amount of labeled pixels in data array to given limit
+    :param data:    data array
+    :param limit:   limit
+    :param nolb:    number of labeled pixels
+    :return: Data array with reduced amount of labeled pixels
+    """
+
     #get number of labeled pixels
-    nol = get_number_of_labels(data)
-    print
-    print "nol of pixels in raw:", nol
-    #make nol float typ
-    nol = nol.astype(np.float128)
+    if nolp == "":
+        nol = get_number_of_labels(data)
+        #make nol float typ
+        nol = nol.astype(np.float128)
+    else:
+        nol = nolp
+
     #reduces number labeled pixels if limit < nol
     if limit < nol:
         percentage = limit / nol
-        print "percentage"
-        print percentage        
+
         limited_data = filter_all_labels(data, percentage)
-        print
-#        assert(limit >= get_number_of_labels(limited_data))
+
         return limited_data
     else:
+        print
+        print "Limit exceeds amount of labeled pixels"
         return data
 
 
@@ -106,6 +133,7 @@ if __name__ == '__main__':
     # print get_number_of_labels(c)
     d = limit_label(b, 10000)
     print get_number_of_labels(d)
+
     
 #    print "real number" 
 #    print get_number_of_labels(g)
@@ -154,99 +182,3 @@ if __name__ == '__main__':
 #        all_filtered_labels[sol] = i        
         #lol.append(sol)
     print "done"
-
-
-
-
-####old function:
-
-#nol = np.amax(data) #number of labels
-#print nol
-#
-#tol = np.unique(data) #number of labels
-#print tol
-#
-#check = len(tol) - 1
-#
-#assert(check == nol)
-#
-#label = [] #list of labels
-#rol = []
-#
-#for i in range(1, len(tol)): #creates list of label data
-#    label.append(data == i)
-#    random = np.random.random(data.shape) #create array with random values between 0 and 1
-#    rol.append(random * label[i])
-#
-#
-#rol1 = label[0] * random #randomization_of_label1
-#
-#s = sum(label[0]) #number of pixels labeled by label1
-#
-#total = data.shape[0] * data.shape[1] * data.shape[2] #total number of pixels of data
-#
-#
-#p = 0.3 #wanted percentage of labeled pixels
-#
-#q = (total - p*s) / total * 100 #percentile
-#print q
-#
-#subset = np.percentile(rol1, q) #qth percentile
-#
-#sol1 = rol1 > subset #selection of label1 dtype=bool
-#print subset
-#print sol1[35:37, 66:68, 66:68]
-#print sum(sol1)
-
-
-#r = np.random.random(100)
-#
-#p = np.percentile(r, 90)
-#
-#print r
-#print p
-#
-#print r>p
-#print r<p
-#
-#print np.sum(r>p)
-#print np.sum(r<p)
-
-#quit()
-#
-#
-#
-#
-#
-#print "datatype of data:"
-#print data.dtype
-#
-#label1 = data == 1 #filter label 1
-#label2 = data == 2 #filter label 2
-#all_labels = data >= 1 #all labels
-#
-#random = np.random.random(data.shape) #create array with random values between 0 and 1
-#
-#randomization_label1 = np.multiply(random, label1) #multiply label1 array with random array elementwise
-#
-#
-#
-#b = randomization_label1 > 0.5
-#
-#b = b.astype(np.int32)
-#b = b.astype(np.bool)
-#b = b.astype(np.float)
-#
-#print randomization_label1[b] 
-#
-#
-#
-#random_label1 = threshold(randomization_label1, 0.5) 
-#print "shape"
-#print random_label1.shape
-#random_label1[random_label1 > 0]= int(1) #reset label array
-#
-#print "datatype of random_label1:"
-#print random_label1.dtype
-#print random_label1[35:37, 66:68, 66:68]
-

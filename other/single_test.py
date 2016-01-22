@@ -6,7 +6,7 @@ Created on Thu Oct  1 15:21:51 2015
 """
 
 from subprocess import call
-from python_functions.handle_data.modify_labels import reduce_labels_in_ilp
+from python_functions.handle_data.new_modify_labels import reduce_labels_in_ilp
 from python_functions.handle_data.archive import archive_qdata
 from python_functions.handle_h5.handle_h5 import save_h5, read_h5
 from python_functions.other.host_config import assign_path
