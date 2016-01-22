@@ -146,7 +146,7 @@ def test(ilp, files, gt, labels="", loops=3, weights="", repeats=1, outpath= "",
     if "less_feat" in ilp:
         filename += "_less_feat"
     file_dir = output + "/" + filename
-    #file_dir = "/home/stamylew/delme"
+    file_dir = "/home/stamylew/delme"
 
     if not os.path.exists(file_dir):
         print
@@ -191,7 +191,7 @@ def test(ilp, files, gt, labels="", loops=3, weights="", repeats=1, outpath= "",
         print "batch prediction completed"
 
         #archive data
-        archive_qdata(p_cache + "/", gt, qdata, i, q_data_outpath, 0)
+        archive_qdata(p_cache + "/", gt, qdata, i, q_data_outpath, (0, 24, 49))
         print
         print "quality computed"
 
@@ -209,16 +209,16 @@ if __name__ == '__main__':
 
     ilp_folder = assign_path(hostname)[0]
     volumes_folder = assign_path(hostname)[1]
-    ilp_file = ilp_folder + "500p_cube1_hand_drawn_less_feat.ilp"
-    files = volumes_folder + "test_data/500p_cube2.h5/data"
-    gt = volumes_folder + "groundtruth/trimaps/500p_cube2_trimap_t_05.h5"
+    ilp_file = ilp_folder + "100p_cube1.ilp"
+    files = volumes_folder + "test_data/100p_cube2.h5/data"
+    gt = volumes_folder + "groundtruth/trimaps/100p_cube2_trimap_t_09.h5"
     # ilp_file = "/home/stamylew/ilastik_projects/500p_cube1.ilp"
     # files = "/home/stamylew/volumes/test_data/500p_cube2.h5"
     # gt = "/home/stamylew/volumes/groundtruth/trimaps/500p_cube2_trimap_t_05.h5"
 
 
     #
-    test(ilp_file, files, gt, 1000, 1, "", 1)
+    test(ilp_file, files, gt, 1000, 1, "", 10)
 
     print
     print "done"

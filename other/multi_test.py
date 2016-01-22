@@ -17,7 +17,7 @@ def multi_loops(nol, ilp, files, gt, labels="", weights="", repeats=1, outpath= 
     if outpath == "":
         output = test_folder_path + "/q_data"
 
-    for n in range(1,nol+1):
+    for n in range(2,nol+1):
         test(ilp, files, gt, labels, n, weights, repeats, output, t_cache, p_cache)
 
 
@@ -45,8 +45,8 @@ if __name__ == '__main__':
 
     ilp_folder = assign_path(hostname)[0]
     volumes_folder = assign_path(hostname)[1]
-    ilp_file = ilp_folder + "500p_cube1.ilp"
-    files = volumes_folder + "test_data/500p_cube2.h5/data"
-    gt = volumes_folder + "groundtruth/trimaps/500p_cube2_trimap_t_05.h5"
-    multi_loops(10, ilp_file, files, gt, 1000, "", 5)
+    ilp_file = ilp_folder + "100p_cube1.ilp"
+    files = volumes_folder + "test_data/100p_cube2.h5/data"
+    gt = volumes_folder + "groundtruth/trimaps/100p_cube2_trimap_t_09.h5"
+    multi_loops(10, ilp_file, files, gt, 1000, "", 10)
     #multi_labels([100, 500, 1000, 5000, 10000, 20000],ilp_file, files, gt, 3, "", 10)

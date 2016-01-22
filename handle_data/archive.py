@@ -13,7 +13,7 @@ from python_functions.quality.quality import adjust_predict, unswap
 import numpy as np
 import matplotlib.pyplot as plt
 
-def archive_qdata(p_cache, gt, qdata, repeat, outpath, slice = 0):
+def archive_qdata(p_cache, gt, qdata, repeat, outpath, slices):
     """ archive quality data
     :param p_cache:     folder in which the batch prediction results are stored
     :param gt:          groundtruth
@@ -28,7 +28,7 @@ def archive_qdata(p_cache, gt, qdata, repeat, outpath, slice = 0):
 
     #save quality data
     gt_data = read_h5(gt)
-    #q_data  = np.zeros((repeats, 4), dtype = np.float64)
+    #q_data = np.zeros((repeats, 4), dtype = np.float64)
 
     predict = predict_class(gt_data, predict_data)
     qdata[repeat] = predict.quality
@@ -41,12 +41,12 @@ def archive_qdata(p_cache, gt, qdata, repeat, outpath, slice = 0):
     #save_h5(q_data, outpath, "a_p_r_auc", None)
 
     #show and save prediction and gt images
-    predict.show_images()
-    im_outpath = outpath.split(".")[-2]
-    predict_im_outpath = im_outpath + ".png"
-    gt_im_outpath = im_outpath + "_gt.png"
-    plt.imsave(predict_im_outpath, predict.adjusted_predict[slice])
-    plt.imsave(gt_im_outpath, gt_data[slice])
+    for slice in slices:
+        im_outpath = outpath.split(".")[-2]
+        predict_im_outpath = im_outpath + "_slice_" + str(slice) + ".png"
+        gt_im_outpath = im_outpath + "_slice_" + str(slice) + "_gt.png"
+        plt.imsave(predict_im_outpath, predict.adjusted_predict[slice])
+        plt.imsave(gt_im_outpath, gt_data[slice])
 
     #save roc curve
     fpr, tpr, threshold = predict.roc_curve
