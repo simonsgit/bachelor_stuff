@@ -22,5 +22,6 @@ def view_HDF5(inpaths):
 if __name__ == '__main__':
     data1 = "/home/stamylew/volumes/groundtruth/trimaps/100p_cube2_trimap_t_05.h5"
     data2 = "/home/stamylew/volumes/groundtruth/trimaps/100p_cube2_trimap_t_09.h5"
-    inpaths = (data1, data2)
+    data3 = "/home/stamylew/volumes/groundtruth/trimaps/100p_cube2_trimap_t_15.h5"
+    inpaths = (data1, data2, data3)
     view_HDF5(inpaths)

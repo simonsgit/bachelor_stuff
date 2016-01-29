@@ -9,7 +9,7 @@ import os
 from os.path import isfile, join
 from python_functions.handle_h5.handle_h5 import read_h5, save_h5
 from python_functions.handle_data.dclass import predict_class
-from python_functions.quality.quality import adjust_predict, unswap
+from python_functions.quality.quality import get_quality_values
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -31,6 +31,7 @@ def archive_qdata(p_cache, gt, qdata, repeat, outpath, slices):
     #q_data = np.zeros((repeats, 4), dtype = np.float64)
 
     predict = predict_class(gt_data, predict_data)
+    apr = get_quality_values(gt_data, predict_data)
     qdata[repeat] = predict.quality
     print
     print "quality:"

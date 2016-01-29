@@ -114,6 +114,26 @@ def test(ilp, files, gt, labels="", loops=3, weights="", repeats=1, outpath= "",
 
     #path
     hostname = socket.gethostname()
+    print "hostname:", hostname
+    print
+    print "ilp_file:", ilp
+    print
+    print "files to predict:", files
+    print
+    print "groundtruth:", gt
+    print
+    print "labels:", labels
+    print
+    print "loops:", loops
+    print
+    print "repeats:", repeats
+    print
+    print "outpath:", outpath
+    print
+    print "t_cache:", t_cache
+    print
+    print "p_cache:", p_cache
+
     test_folder_path = assign_path(hostname)[4]
 
     if t_cache == "":
@@ -218,7 +238,7 @@ if __name__ == '__main__':
 
 
     #
-    test(ilp_file, files, gt, 1000, 1, "", 10)
+    test(ilp_file, files, gt, 1001, 1, "", 1)
 
     print
     print "done"

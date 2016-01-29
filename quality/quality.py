@@ -99,6 +99,9 @@ def apr(gt, predict, pos_label = 1):
     sklearn_prec = precision_score(gt, predict)
     sklearn_rec = recall_score(gt, predict)
 
+    #auc_score
+    auc_score = roc_auc(gt, predict)
+
 
     # #myquality
     # #accuray
@@ -137,7 +140,13 @@ def apr(gt, predict, pos_label = 1):
     # print "my recall:", recall
     # print
 
-    return sklearn_acc, sklearn_prec, sklearn_rec
+    return sklearn_acc, sklearn_prec, sklearn_rec, auc_score
+
+def get_quality_values(gt, predict):
+    adjusted_predict = adjust_predict(predict)
+    ignore_label_excluded = exclude_ignore_label(gt, adjusted_predict)
+    quality_values = apr(ignore_label_excluded[0], ignore_label_excluded[1])
+    return quality_values
 
 def adjust_labels(data):
     right_label = data == 1
@@ -162,17 +171,18 @@ def draw_roc_curve(gt, predict):
 if __name__ == '__main__':
     predict = read_h5("/home/stamylew/test_folder/p_cache/100p_cube2_probs.h5", "exported_data")
     gt = read_h5("/home/stamylew/volumes/groundtruth/trimaps/100p_cube2_trimap_t_05.h5", "data")
-    adjusted_predict = adjust_predict(predict)
-    print
-    print np.unique(adjusted_predict)
-    relevant_data = exclude_ignore_label(gt, adjusted_predict)
-
-    roc_predict = unswap(predict[0,:,:,:,0])
-    roc_relevant_data = exclude_ignore_label(gt, roc_predict)
-    print "auc_score:", roc_auc(roc_relevant_data[0], roc_relevant_data[1])
-
-
-    acc, prec, rec, = apr(relevant_data[0], relevant_data[1])
-    print
-    print "apr:", acc, prec, rec
+    print get_quality_values(gt, predict)
+    # adjusted_predict = adjust_predict(predict)
+    # print
+    # print np.unique(adjusted_predict)
+    # relevant_data = exclude_ignore_label(gt, adjusted_predict)
+    #
+    # roc_predict = unswap(predict[0,:,:,:,0])
+    # roc_relevant_data = exclude_ignore_label(gt, roc_predict)
+    # print "auc_score:", roc_auc(roc_relevant_data[0], roc_relevant_data[1])
+    #
+    #
+    # acc, prec, rec, = apr(relevant_data[0], relevant_data[1])
+    # print
+    # print "apr:", acc, prec, rec
     print "done"

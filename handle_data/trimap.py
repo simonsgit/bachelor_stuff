@@ -45,8 +45,8 @@ if __name__ == '__main__':
     # plt.figure()
     # plt.imshow(gt[0])
 
-    ld = create_trimap(d, gt, 0.9)
-    save_h5(ld, "/home/stamylew/volumes/groundtruth/trimaps/100p_cube2_trimap_t_09.h5", "data", "lzf")
+    ld = create_trimap(d, gt, 1.5)
+    save_h5(ld, "/home/stamylew/volumes/groundtruth/trimaps/100p_cube2_trimap_t_15.h5", "data", "lzf")
     #
     # plt.figure()
     # plt.imshow(d[10])
