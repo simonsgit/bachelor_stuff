@@ -20,8 +20,10 @@ def view_HDF5(inpaths):
     app.exec_()
 
 if __name__ == '__main__':
-    data1 = "/home/stamylew/volumes/groundtruth/trimaps/100p_cube2_trimap_t_05.h5"
-    data2 = "/home/stamylew/volumes/groundtruth/trimaps/100p_cube2_trimap_t_09.h5"
-    data3 = "/home/stamylew/volumes/groundtruth/trimaps/100p_cube2_trimap_t_15.h5"
-    inpaths = (data1, data2, data3)
+    data1 = "/home/stamylew/delme/prob_map.h5"
+    data2 = "/home/stamylew/delme/segmentation.h5"
+    data3 = "/home/stamylew/delme/05bin_prob_map.h5"
+    data4 = "/home/stamylew/volumes/groundtruth/memb/100p_cube2_memb.h5"
+    data5 = "/home/stamylew/delme/segmentation_gt.h5"
+    inpaths = (data1, data2, data3, data4, data5)
     view_HDF5(inpaths)

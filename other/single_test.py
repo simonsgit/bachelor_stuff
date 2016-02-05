@@ -13,7 +13,7 @@ from python_functions.other.host_config import assign_path
 import socket
 import os
 import numpy as np
-
+from python_functions.other.host_config import host
 
 #appendages for training and batch prediction commands
 def clear_cache(command, answer):
@@ -37,19 +37,20 @@ def modify_weights(command, weights):
 
 #autocontext training
 def ac_train(ilp, labels="", loops=3, weights="", t_cache = "", outpath= ""):
-    """ Use autocontext train function
+    """ Use autocontext train function and returns used shell command
     :param: ilp     :   path to ilp project
     :param: labels  :   number of labeled pixels
     :param: loops   :   number of loops
     :param: weights :   weighted label distribution
     :param: t_cache :   path to training cache folder
     :param: outpath :   outpath for the ilp file
+    :return shell command
     """
 
     #paths
     hostname = socket.gethostname()
-    autocontext_path = assign_path(hostname)[3]
-    ilastik_path = assign_path(hostname)[2]
+    autocontext_path = assign_path(hostname)[4]
+    ilastik_path = assign_path(hostname)[3]
 
     #reduce number labeled pixels if wanted
     if labels != "":
@@ -62,10 +63,8 @@ def ac_train(ilp, labels="", loops=3, weights="", t_cache = "", outpath= ""):
         outpath = ilp.split(".")[-2] + "_out.ilp"
 
     #create training command
-    command = ["python", autocontext_path,
-          "--train", ilp, "-o", outpath, "--cache", t_cache, "--clear_cache",
-        "--ilastik", ilastik_path]
-
+    command = ["python", autocontext_path, "--train", ilp, "-o", outpath,
+               "--cache", t_cache, "--clear_cache", "--ilastik", ilastik_path]
 
     #modify loop number
     command = modify_loop_number(command, loops)
@@ -84,12 +83,13 @@ def ac_batch_predict(files, t_cache, p_cache = "", overwrite = "no"):
     :param: t_cache     :   path to training cache folder
     :param: p_cache     :   path to prediction cache folder
     :param: overwrite   :   decides if prediction files should be overwritten after each iteration
+    :return shell command
     """
 
     #path
     hostname = socket.gethostname()
-    autocontext_path = assign_path(hostname)[3]
-    ilastik_path = assign_path(hostname)[2]
+    autocontext_path = assign_path(hostname)[4]
+    ilastik_path = assign_path(hostname)[3]
 
 
     #create batch command
@@ -166,7 +166,7 @@ def test(ilp, files, gt, labels="", loops=3, weights="", repeats=1, outpath= "",
     if "less_feat" in ilp:
         filename += "_less_feat"
     file_dir = output + "/" + filename
-    file_dir = "/home/stamylew/delme"
+    file_dir = hostname[0] + "delme"
 
     if not os.path.exists(file_dir):
         print
@@ -232,12 +232,7 @@ if __name__ == '__main__':
     ilp_file = ilp_folder + "100p_cube1.ilp"
     files = volumes_folder + "test_data/100p_cube2.h5/data"
     gt = volumes_folder + "groundtruth/trimaps/100p_cube2_trimap_t_09.h5"
-    # ilp_file = "/home/stamylew/ilastik_projects/500p_cube1.ilp"
-    # files = "/home/stamylew/volumes/test_data/500p_cube2.h5"
-    # gt = "/home/stamylew/volumes/groundtruth/trimaps/500p_cube2_trimap_t_05.h5"
 
-
-    #
     test(ilp_file, files, gt, 1001, 1, "", 1)
 
     print

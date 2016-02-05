@@ -8,7 +8,7 @@ Created on Wed Oct 14 14:54:50 2015
 import os
 from os.path import isfile, join
 from python_functions.handle_h5.handle_h5 import read_h5, save_h5
-from python_functions.handle_data.dclass import predict_class
+from python_functions.handle_data.predict_class import predict_class
 from python_functions.quality.quality import get_quality_values
 import numpy as np
 import matplotlib.pyplot as plt
