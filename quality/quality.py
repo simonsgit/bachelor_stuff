@@ -26,7 +26,6 @@ def adjust_predict(predict):
     :param predict: prediction unswapped if necessary
     """
 
-    print np.size(np.shape(predict))
     assert np.size(np.shape(predict)) == 5
     squeezed_data = predict[0,:,:,:,0]
     # plt.imshow(squeezed_data[0])

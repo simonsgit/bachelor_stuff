@@ -4,16 +4,16 @@ Created on Thu Oct  1 15:21:51 2015
 
 @author: stamylew
 """
-
+import argparse
 from subprocess import call
-from python_functions.handle_data.new_modify_labels import reduce_labels_in_ilp
-from python_functions.handle_data.archive import archive_qdata
-from python_functions.handle_h5.handle_h5 import save_h5, read_h5
-from python_functions.other.host_config import assign_path
 import socket
 import os
 import numpy as np
 from python_functions.other.host_config import host
+from python_functions.handle_data.new_modify_labels import reduce_labels_in_ilp
+from python_functions.handle_data.archive import archive_qdata
+from python_functions.handle_h5.handle_h5 import save_h5, read_h5
+from python_functions.other.host_config import assign_path
 
 #appendages for training and batch prediction commands
 def clear_cache(command, answer):
@@ -114,6 +114,8 @@ def test(ilp, files, gt, labels="", loops=3, weights="", repeats=1, outpath= "",
 
     #path
     hostname = socket.gethostname()
+    print "test information:"
+    print
     print "hostname:", hostname
     print
     print "ilp_file:", ilp
@@ -126,6 +128,8 @@ def test(ilp, files, gt, labels="", loops=3, weights="", repeats=1, outpath= "",
     print
     print "loops:", loops
     print
+    print "weights:", weights
+    print
     print "repeats:", repeats
     print
     print "outpath:", outpath
@@ -134,7 +138,7 @@ def test(ilp, files, gt, labels="", loops=3, weights="", repeats=1, outpath= "",
     print
     print "p_cache:", p_cache
 
-    test_folder_path = assign_path(hostname)[4]
+    test_folder_path = assign_path(hostname)[5]
 
     if t_cache == "":
         t_cache = test_folder_path + "/t_cache"
@@ -166,14 +170,14 @@ def test(ilp, files, gt, labels="", loops=3, weights="", repeats=1, outpath= "",
     if "less_feat" in ilp:
         filename += "_less_feat"
     file_dir = output + "/" + filename
-    file_dir = hostname[0] + "delme"
+    file_dir = assign_path(hostname)[0] + "delme"
 
     if not os.path.exists(file_dir):
         print
         print "Output folder did not exist."
         os.mkdir(file_dir)
         print
-        print "New one named " + file_dir+ " was created."
+        print "New one named " + file_dir + " was created."
 
     q_outpath = file_dir + "/n_" + str(loops) + "_l_" + str(label_tag) + "_w_" + weight_tag
     q_data_outpath = q_outpath + "/n_" + str(loops) + "_l_" + str(labels) + "_w_" + weight_tag + ".h5"
@@ -215,6 +219,7 @@ def test(ilp, files, gt, labels="", loops=3, weights="", repeats=1, outpath= "",
         print
         print "quality computed"
 
+    #save data
     save_h5([filename], q_data_outpath, "filename")
     save_h5(qdata, q_data_outpath, "a_p_r_auc", None)
     save_h5([labels],q_data_outpath, "labels")
@@ -224,16 +229,14 @@ def test(ilp, files, gt, labels="", loops=3, weights="", repeats=1, outpath= "",
 
 if __name__ == '__main__':
     hostname = socket.gethostname()
-    print
-    print "hostname:", hostname
 
-    ilp_folder = assign_path(hostname)[0]
-    volumes_folder = assign_path(hostname)[1]
+    ilp_folder = assign_path(hostname)[1]
+    volumes_folder = assign_path(hostname)[2]
     ilp_file = ilp_folder + "100p_cube1.ilp"
     files = volumes_folder + "test_data/100p_cube2.h5/data"
     gt = volumes_folder + "groundtruth/trimaps/100p_cube2_trimap_t_09.h5"
 
-    test(ilp_file, files, gt, 1001, 1, "", 1)
+    test(ilp_file, files, gt, 10000, 10, [1,2,3], 1)
 
     print
     print "done"

@@ -3,6 +3,7 @@ import numpy as np
 from src.watershed.wsdt import wsDtSegmentation
 from python_functions.handle_h5.handle_h5 import read_h5, save_h5
 from python_functions.handle_data.dclass import predict_class
+from vigra import analysis, filters
 
 def make_superpixels(prob_map, gt):
     prob_map = predict_class(gt, prob_map)
@@ -10,6 +11,7 @@ def make_superpixels(prob_map, gt):
     save_h5(prob_map, "/home/stamylew/delme/prob_map.h5", "data", None)
     segmentation = wsDtSegmentation(prob_map, 0.5, 0, 10, 2, 2, cleanCloseSeeds=True, returnSeedsOnly=False)
     print "number of segments:", len(np.unique(segmentation))
+
     return segmentation
 
 if __name__ == '__main__':
