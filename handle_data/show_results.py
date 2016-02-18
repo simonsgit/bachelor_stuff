@@ -20,7 +20,7 @@ def sort_and_extract_qdata(path, fixed_param):
     :return:
     """
 
-    #create labels for plot
+    # Create labels for plot
     if "n_" in fixed_param:
         x_dim = "labels"
         fixed = 'n = ' + fixed_param.split("_")[-2]
@@ -37,12 +37,22 @@ def sort_and_extract_qdata(path, fixed_param):
         #print datapath
         xvar = read_h5(datapath, x_dim)
         xvar = xvar[0]
-        apr = read_h5(datapath, "a_p_r_auc")
-        acc= apr[:,0]
-        pre= apr[:,1]
-        rec= apr[:,2]
-        auc= apr[:,3]
-        qdata_tuple = (xvar,np.mean(acc),np.std(acc),np.mean(pre),np.std(pre),np.mean(rec),np.std(rec),np.mean(auc),np.std(auc))
+        qv = read_h5(datapath, "quality_values")
+        acc= qv[:,0]
+        pre= qv[:,1]
+        rec= qv[:,2]
+        auc= qv[:,3]
+        ri = qv[:,4]
+        voi= qv[:,5]
+        ds = qv[:,6]
+        tp = qv[:,7]
+        fp = qv[:,8]
+        tn = qv[:,9]
+        fn = qv[:,10]
+
+        qdata_tuple = (xvar,np.mean(acc),np.std(acc),np.mean(pre),np.std(pre),np.mean(rec),np.std(rec),np.mean(auc),np.std(auc),
+                       np.mean(ri), np.std(ri), np.mean(voi), np.std(voi), np.mean(ds), np.std(ds), np.mean(tp), np.std(tp),
+                       np.mean(fp), np.std(fp), np.mean(tn), np.std(tn), np.mean(fn), np.mean(fn))
         qtuple_list.append(qdata_tuple)
 
     sorted_qtuple = sorted(qtuple_list, key=lambda  tup: tup[0])
@@ -170,7 +180,7 @@ if __name__ == '__main__':
     path2 = "/home/stamylew/test_folder/q_data/100p_cube2_t09"
     path3 = "/home/stamylew/test_folder/q_data/100p_cube2_t15"
     # print sort_and_extract_qdata(path, "l_1000_")
-    q = sort_and_extract_qdata(path1, "n_1_")
+    q = sort_and_extract_qdata(path1, "n_3_")
     create_plot(q)
 
     r = sort_and_extract_qdata(path2, "l_10000_")

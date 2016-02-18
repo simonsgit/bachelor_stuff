@@ -1,8 +1,15 @@
 __author__ = 'stamylew'
 
+import os
 import numpy as np
-from python_functions.handle_h5.handle_h5 import read_h5
+import pylab
+import vigra
+import vigra.graphs as vg
+import vigra.filters as vf
+from python_functions.handle_h5.handle_h5 import read_h5, save_h5
 import matplotlib.pyplot as plt
+import skneuro.learning._learning as skl
+from src.watershed.wsdt import wsDtSegmentation
 from sklearn.metrics import roc_auc_score, roc_curve, accuracy_score, precision_score, recall_score
 
 #prepare data for quality assesment
@@ -28,15 +35,13 @@ def adjust_predict(predict):
 
     assert np.size(np.shape(predict)) == 5
     squeezed_data = predict[0,:,:,:,0]
-    # plt.imshow(squeezed_data[0])
-    # plt.show()
+
     adjusted_predict = unswap(squeezed_data)
-    # plt.imshow(adjusted_predict[0])
-    # plt.show()
+
     return adjusted_predict
 
 
-def save_images(gt, predict, outpath = "/home/stamylew/tests", slice = 0):
+def save_images(predict, gt, outpath = "/home/stamylew/tests", slices = (0)):
     """ save 2D slice images of the gt and predicition data for visual comparison
     :param gt:      groundtruth data
     :param predict: prediction data
@@ -44,11 +49,12 @@ def save_images(gt, predict, outpath = "/home/stamylew/tests", slice = 0):
     :param slice:   which slice in x axis direction is picked
     """
 
-    plt.imsave(outpath + "/gt.png", gt[slice])
-    plt.imsave(outpath + "/predict.png", predict[slice])
+    for slice in slices:
+        plt.imsave(outpath + "/gt_slice_" + str(slice) + ".png", gt[slice])
+        plt.imsave(outpath + "/predict_" + str(slice) + ".png", predict[slice])
 
 
-def exclude_ignore_label(gt, predict, ignore_label = 0):
+def exclude_ignore_label(predict, gt, ignore_label = 0):
     """ exclude the ignore label given in the ground truth from the ground truth and the prediction
     :param gt:      ground truth
     :param predict: prediction
@@ -62,7 +68,7 @@ def exclude_ignore_label(gt, predict, ignore_label = 0):
     relevant_data = gt != ignore_label
     relevant_gt = gt[relevant_data]
     relevant_predict = predict[relevant_data]
-    return relevant_gt, relevant_predict
+    return relevant_predict, relevant_gt
 
 
 def binarize_predict(predict, threshold = 0.5, neg_label = 2, pos_label = 1):
@@ -83,106 +89,194 @@ def binarize_predict(predict, threshold = 0.5, neg_label = 2, pos_label = 1):
 
 
 # calculate quality values
-def apr(gt, predict, pos_label = 1):
+def accuracy_precision_recall(predict, gt, pos_label = 1):
     """ calculate accuracy, precision and recall
     :param gt:          groundtruth with ignore label excluded
     :param predict:     prediction data adjusted, binarized and with ignore label excluded
     :param pos_label:   label belonging to the positive class
     :return:    accuracy, precision, recall
     """
-    # TODO: Find optimal threshold from roc curve
-    predict = binarize_predict(predict)
 
+    bin_predict = binarize_predict(predict)
 
     #sklearn quality
-    sklearn_acc = accuracy_score(gt, predict)
-    sklearn_prec = precision_score(gt, predict)
-    sklearn_rec = recall_score(gt, predict)
+    sklearn_acc = accuracy_score(gt, bin_predict)
+    sklearn_prec = precision_score(gt, bin_predict)
+    sklearn_rec = recall_score(gt, bin_predict)
 
-    #auc_score
-    auc_score = roc_auc(gt, predict)
+    return sklearn_acc, sklearn_prec, sklearn_rec
 
-
-    # #myquality
-    # #accuray
-    # comparison = gt == predict
-    # accuracy = float(np.sum(comparison)) / gt.size
-    # sod = gt.size
-    # print
-    # print "my accuracy:", accuracy
-    #
-    #
-    # #precision
-    # retrieved_pos = predict == pos_label
-    # pos_predict = predict[retrieved_pos]
-    # pos_gt = gt[retrieved_pos]
-    # true_pos = pos_predict == pos_gt
-    # norp = float(np.sum(retrieved_pos))
-    # false_pos = pos_predict != pos_gt
-    # notp = float(np.sum(true_pos))
-    # nofp = float(np.sum(false_pos))
-    # precision = notp / (notp + nofp)
-    #
-    # print
-    # print "my precision:", precision
-    # print
-    #
-    # #recall
-    # retrieved_neg = predict != 1
-    # neg_predict = predict[retrieved_neg]
-    # neg_gt = gt[retrieved_neg]
-    # false_neg = neg_predict != neg_gt
-    # nofn = float(np.sum(false_neg))
-    #
-    # recall = notp / (notp + nofn)
-    #
-    # print
-    # print "my recall:", recall
-    # print
-
-    return sklearn_acc, sklearn_prec, sklearn_rec, auc_score
-
-def get_quality_values(gt, predict):
-    adjusted_predict = adjust_predict(predict)
-    ignore_label_excluded = exclude_ignore_label(gt, adjusted_predict)
-    quality_values = apr(ignore_label_excluded[0], ignore_label_excluded[1])
-    return quality_values
 
 def adjust_labels(data):
+    """
+    :param data: Trimap groundtruth
+    :return: Membrane groundtruth
+    """
     right_label = data == 1
     adjusted_label = right_label * 1
     return adjusted_label
 
-def roc_auc(gt, predict):
-    """ get the roc curve and the auc score
-    """
 
-    agt = adjust_labels(gt)
-    auc_score = roc_auc_score(agt,predict)
+def calculate_roc_auc_score(predict, gt):
+    """ Get the roc curve and the auc score
+    """
+    adjusted_gt = adjust_labels(gt)
+
+    auc_score = roc_auc_score(adjusted_gt, predict)
     return auc_score
 
-def draw_roc_curve(gt, predict):
-    agt = adjust_labels(gt)
-    fpr, tpr, thresholds = roc_curve(agt, predict)
+
+def get_segmentation(predict, gt, cleanCloseSeeds=True, returnSeedsOnly=False):
+
+    super_pixels = wsDtSegmentation(predict, 0.5, 0, 10, 2, 2, cleanCloseSeeds, returnSeedsOnly)
+    save_h5(super_pixels, "/home/stamylew/delme/super_pixels.h5", "data", None)
+    probs = vf.gaussianSmoothing(predict, 0.1)
+    save_h5(probs, "/home/stamylew/delme/probs.h5", "data", None)
+    median = round(np.median(np.unique(super_pixels)))
+
+    #make grid graph
+    grid_graph = vg.gridGraph(super_pixels.shape, False)
+    grid_graph_edge_indicator = vg.edgeFeaturesFromImage(grid_graph, probs)
+
+    #make region adjacency graph
+    rag = vg.regionAdjacencyGraph(grid_graph, super_pixels)
+    #accumulate node features from grid graph node map
+    edge_weights = rag.accumulateEdgeFeatures(grid_graph_edge_indicator)
+
+    #do agglomerative clustering
+    labels = vg.agglomerativeClustering(rag, edge_weights, edgeLengths=None,nodeFeatures=None,nodeSizes=None,
+            nodeLabels=None,nodeNumStop=None,beta=0,metric='l1',wardness=1.0,out=None)
+
+    segmentation = rag.projectLabelsToBaseGraph(labels)
+
+    return segmentation
+
+
+def get_data_size(predict, gt):
+    """
+    """
+    relevant_data = predict.size
+    assert relevant_data == gt.size
+    return relevant_data
+
+
+def true_and_false_pos(predict, gt, pos_label=1):
+    """
+    """
+    bin_predict = binarize_predict(predict)
+    predicted_pos = bin_predict == pos_label
+    only_pos_predicted = bin_predict[predicted_pos]
+    only_pos_predicted_gt = gt[predicted_pos]
+
+    true_pos = only_pos_predicted == only_pos_predicted_gt
+    false_pos = only_pos_predicted != only_pos_predicted_gt
+
+    no_of_true_pos = float(np.sum(true_pos))
+    no_of_false_pos = float(np.sum(false_pos))
+
+    return no_of_true_pos, no_of_false_pos
+
+
+def true_and_false_neg(predict, gt, pos_label=1):
+    bin_predict = binarize_predict(predict)
+    predicted_neg = bin_predict != pos_label
+    only_neg_predicted = bin_predict[predicted_neg]
+    only_neg_predicted_gt = gt[predicted_neg]
+
+    true_neg = only_neg_predicted == only_neg_predicted_gt
+    false_neg = only_neg_predicted != only_neg_predicted_gt
+
+    no_of_neg_pos = float(np.sum(true_neg))
+    no_of_false_neg = float(np.sum(false_neg))
+
+    return no_of_neg_pos, no_of_false_neg
+
+
+def get_quality_values(predict, gt, dense_gt):
+    """
+    """
+    adjusted_predict = adjust_predict(predict)
+    relevant_predict, relevant_gt = exclude_ignore_label(adjusted_predict, gt)
+    acc, pre, rec = accuracy_precision_recall(relevant_predict, relevant_gt)
+    auc_score = calculate_roc_auc_score(relevant_predict, relevant_gt)
+    data_size = get_data_size(relevant_predict, relevant_gt)
+    no_of_true_pos, no_of_false_pos = true_and_false_pos(relevant_predict, relevant_gt)
+    no_of_true_neg, no_of_false_neg = true_and_false_neg(relevant_predict, relevant_gt)
+
+
+    segmentation = get_segmentation(adjusted_predict, gt)
+    save_h5(segmentation, "/home/stamylew/delme/segmap.h5", "data", None)
+    ri_data = skl.randIndex(segmentation.flatten().astype(np.uint32), dense_gt.flatten().astype(np.uint32), True)
+    voi_data = skl.variationOfInformation(segmentation.flatten().astype(np.uint32), dense_gt.flatten().astype(np.uint32), True)
+
+    quality_values = ()
+
+    return acc, pre, rec, auc_score, ri_data, voi_data, no_of_true_pos, no_of_false_pos, no_of_true_neg, no_of_false_neg
+
+
+def draw_roc_curve(predict, gt):
+    """
+    """
+
+    adjusted_predict = adjust_predict(predict)
+    relevant_predict, relevant_gt = exclude_ignore_label(adjusted_predict, gt)
+    agt = adjust_labels(relevant_gt)
+    fpr, tpr, thresholds = roc_curve(agt, relevant_predict)
     return fpr, tpr, thresholds
 
 
+def save_quality_values(predict_path, gt_path, dense_gt_path, outpath, slices):
+    """
+    """
+
+    #read predict and groundtruth data
+    predict_data = read_h5(predict_path, "exported_data")
+    gt_data = read_h5(gt_path)
+    dense_gt_data = read_h5(dense_gt_path)
+    all_quality_data = get_quality_values(predict_data, gt_data, dense_gt_data)
+
+
+    #get quality values
+    acc, prec, rec, auc_score, ri, voi, tp, fp, tn, fn = get_quality_values(predict_data, gt_data, dense_gt_data)
+    measurements = {"accuracy":acc, "precision":prec, "recall":rec, "auc score":auc_score, "rand index":ri,
+                    "variation of information":voi, "true positives":tp, "false positives":fp, "true negatives":tn,
+                    "false negatives":fn}
+
+    if not os.path.exists(outpath):
+        print "Output h5 file did not exist."
+        for measurement in measurements.iterkeys():
+            key = "quality/" + measurement
+            data = np.zeros((1,))
+            data[0] = measurements[str(measurement)]
+            save_h5(data, outpath, key, None)
+    else:
+        for measurement in measurements.iterkeys():
+            key = "quality/" + measurement
+            data = read_h5(outpath, key)
+            new_data = np.vstack((data, measurements[measurement]))
+            save_h5(new_data, outpath, key, None)
+
+    for slice in slices:
+        im_outpath = outpath.split(".")[-2]
+        predict_im_outpath = im_outpath + "_slice_" + str(slice) + ".png"
+        gt_im_outpath = im_outpath + "_slice_" + str(slice) + "_gt.png"
+        plt.imsave(predict_im_outpath, adjust_predict(predict_data)[slice])
+        plt.imsave(gt_im_outpath, gt_data[slice])
+
+    fpr, tpr, threshold = draw_roc_curve(predict_data, gt_data)
+    plt.figure()
+    plt.plot(fpr, tpr)
+    plt.savefig(im_outpath + "roc_curve_test.png")
 
 if __name__ == '__main__':
-    predict = read_h5("/home/stamylew/test_folder/p_cache/100p_cube2_probs.h5", "exported_data")
-    gt = read_h5("/home/stamylew/volumes/groundtruth/trimaps/100p_cube2_trimap_t_05.h5", "data")
-    print get_quality_values(gt, predict)
-    # adjusted_predict = adjust_predict(predict)
-    # print
-    # print np.unique(adjusted_predict)
-    # relevant_data = exclude_ignore_label(gt, adjusted_predict)
-    #
-    # roc_predict = unswap(predict[0,:,:,:,0])
-    # roc_relevant_data = exclude_ignore_label(gt, roc_predict)
-    # print "auc_score:", roc_auc(roc_relevant_data[0], roc_relevant_data[1])
-    #
-    #
-    # acc, prec, rec, = apr(relevant_data[0], relevant_data[1])
-    # print
-    # print "apr:", acc, prec, rec
+    predict_path = "/home/stamylew/test_folder/p_cache/100p_cube2_probs.h5"
+    predict = read_h5(predict_path)
+    gt_path = "/home/stamylew/volumes/groundtruth/trimaps/100p_cube2_trimap_t_05.h5"
+    gt = read_h5(gt_path)
+    dense_gt_path = "/home/stamylew/volumes/groundtruth/dense_groundtruth/100p_cube2_dense_gt.h5"
+    dense_gt = read_h5(dense_gt_path)
+    outpath = "/home/stamylew/delme/n_1_l_10000_w_none/n_1_l_10000_w_none.h5"
+    print get_quality_values(predict, gt, dense_gt)
+    #save_quality_values(predict_path, gt_path, dense_gt_path, outpath)
+
     print "done"

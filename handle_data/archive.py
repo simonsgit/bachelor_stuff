@@ -8,12 +8,12 @@ Created on Wed Oct 14 14:54:50 2015
 import os
 from os.path import isfile, join
 from python_functions.handle_h5.handle_h5 import read_h5, save_h5
-from python_functions.handle_data.predict_class import predict_class
-from python_functions.quality.quality import get_quality_values
+#from python_functions.handle_data.predict_class import predict_class
+from python_functions.quality.quality import get_quality_values, adjust_predict, draw_roc_curve
 import numpy as np
 import matplotlib.pyplot as plt
 
-def archive_qdata(p_cache, gt, qdata, repeat, outpath, slices):
+def archive_qdata(predict_path, gt_path, dense_gt_path, qdata, repeat, outpath, slices):
     """ archive quality data
     :param p_cache:     folder in which the batch prediction results are stored
     :param gt:          groundtruth
@@ -22,23 +22,24 @@ def archive_qdata(p_cache, gt, qdata, repeat, outpath, slices):
     :param slice:       which 2D slice in x direction of the data is saved as image
     """
 
-    #get predicition file
-    prob_file = [x for x in os.listdir(p_cache) if ("probs" in x)]
-    predict_data = read_h5(p_cache + "/" + prob_file[0], "exported_data")
+    #get predicition and groundtruth data
+    predict_data = read_h5(predict_path, "exported_data")
+    gt_data = read_h5(gt_path)
+    dense_gt_data = read_h5(dense_gt_path)
 
-    #save quality data
-    gt_data = read_h5(gt)
-    #q_data = np.zeros((repeats, 4), dtype = np.float64)
-
-    predict = predict_class(gt_data, predict_data)
-    apr = get_quality_values(gt_data, predict_data)
-    qdata[repeat] = predict.quality
+    qdata[repeat] = get_quality_values(predict_data, gt_data, dense_gt_data)
     print
-    print "quality:"
-    print "accuracy:", predict.quality[0]
-    print "precision:", predict.quality[1]
-    print "recall:", predict.quality[2]
-    print "roc auc score:", predict.quality[3]
+    print "quality values"
+    print "accuracy:", get_quality_values(predict_data, gt_data)[0]
+    print "precision:", get_quality_values(predict_data, gt_data)[1]
+    print "recall:", get_quality_values(predict_data, gt_data)[2]
+    print "roc auc score:", get_quality_values(predict_data, gt_data)[3]
+    print "rand index:", get_quality_values(predict_data,gt_data)[4]
+    print "variation of information:", get_quality_values(predict_data, gt_data)[5]
+    print "true positives:", get_quality_values(predict_data, gt_data)[7]
+    print "false positives:", get_quality_values(predict_data, gt_data)[8]
+    print "true negatives:", get_quality_values(predict_data, gt_data)[9]
+    print "false negatives:", get_quality_values(predict_data, gt_data)[10]
     #save_h5(q_data, outpath, "a_p_r_auc", None)
 
     #show and save prediction and gt images
@@ -46,11 +47,11 @@ def archive_qdata(p_cache, gt, qdata, repeat, outpath, slices):
         im_outpath = outpath.split(".")[-2]
         predict_im_outpath = im_outpath + "_slice_" + str(slice) + ".png"
         gt_im_outpath = im_outpath + "_slice_" + str(slice) + "_gt.png"
-        plt.imsave(predict_im_outpath, predict.adjusted_predict[slice])
+        plt.imsave(predict_im_outpath, adjust_predict(predict_data)[slice])
         plt.imsave(gt_im_outpath, gt_data[slice])
 
     #save roc curve
-    fpr, tpr, threshold = predict.roc_curve
+    fpr, tpr, threshold = draw_roc_curve(predict_data, gt_data)
     plt.figure()
     plt.plot(fpr, tpr)
     plt.savefig(im_outpath + "roc_curve_test" + str(repeat) + ".png")
@@ -62,9 +63,6 @@ if __name__ == '__main__':
     outpath = "/home/stamylew/test_folder/output_t_05/delme/test.h5"
     archive_qdata(x, gt, outpath)
     print "done"
-
-
-
 
 
 

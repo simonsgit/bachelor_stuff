@@ -4,14 +4,14 @@ Created on Thu Oct  1 15:21:51 2015
 
 @author: stamylew
 """
-import argparse
+
 from subprocess import call
 import socket
 import os
 import numpy as np
-from python_functions.other.host_config import host
 from python_functions.handle_data.new_modify_labels import reduce_labels_in_ilp
 from python_functions.handle_data.archive import archive_qdata
+from python_functions.quality.quality import save_quality_values
 from python_functions.handle_h5.handle_h5 import save_h5, read_h5
 from python_functions.other.host_config import assign_path
 
@@ -52,7 +52,7 @@ def ac_train(ilp, labels="", loops=3, weights="", t_cache = "", outpath= ""):
     autocontext_path = assign_path(hostname)[4]
     ilastik_path = assign_path(hostname)[3]
 
-    #reduce number labeled pixels if wanted
+    #reduce number of labeled pixels if wanted
     if labels != "":
         print
         print "reducing labels to " + str(labels)
@@ -107,12 +107,12 @@ def ac_batch_predict(files, t_cache, p_cache = "", overwrite = "no"):
 
 
 #test
-def test(ilp, files, gt, labels="", loops=3, weights="", repeats=1, outpath= "",
+def test(ilp, files, gt_path, dense_gt_path, labels="", loops=3, weights="", repeats=1, outpath= "",
          t_cache = "", p_cache = ""):
     """get quality values of batch predicition for adjusted number of labels, loops and weights
     """
 
-    #path
+    # Show test configuration data
     hostname = socket.gethostname()
     print "test information:"
     print
@@ -122,7 +122,9 @@ def test(ilp, files, gt, labels="", loops=3, weights="", repeats=1, outpath= "",
     print
     print "files to predict:", files
     print
-    print "groundtruth:", gt
+    print "groundtruth:", gt_path
+    print
+    print "dense groundtruth:", dense_gt_path
     print
     print "labels:", labels
     print
@@ -138,6 +140,7 @@ def test(ilp, files, gt, labels="", loops=3, weights="", repeats=1, outpath= "",
     print
     print "p_cache:", p_cache
 
+    # Assign paths
     test_folder_path = assign_path(hostname)[5]
 
     if t_cache == "":
@@ -151,7 +154,7 @@ def test(ilp, files, gt, labels="", loops=3, weights="", repeats=1, outpath= "",
     else:
         output = outpath
 
-    #create file tags
+    # Create file tags
     if labels == "":
         label_tag = "all"
     else:
@@ -162,16 +165,21 @@ def test(ilp, files, gt, labels="", loops=3, weights="", repeats=1, outpath= "",
     else:
         weight_tag = str(weights)
 
-    #make folder
+    # Make folder for quality data
     filesplit = files.split(".")[-2]
     filename = filesplit.split("/")[-1]
+
     if "hand_drawn" in ilp:
         filename += "_hand_drawn"
     if "less_feat" in ilp:
         filename += "_less_feat"
+
     file_dir = output + "/" + filename
+
+    # Overwrite folder directory
     file_dir = assign_path(hostname)[0] + "delme"
 
+    # Check if file directory exists, if not make such directory
     if not os.path.exists(file_dir):
         print
         print "Output folder did not exist."
@@ -181,29 +189,21 @@ def test(ilp, files, gt, labels="", loops=3, weights="", repeats=1, outpath= "",
 
     q_outpath = file_dir + "/n_" + str(loops) + "_l_" + str(label_tag) + "_w_" + weight_tag
     q_data_outpath = q_outpath + "/n_" + str(loops) + "_l_" + str(labels) + "_w_" + weight_tag + ".h5"
-    #q_data_outpath = "/home/stamylew/delme/test.h5"
+
+    # Check if test directory exists, if not make such directory
     if not os.path.exists(q_outpath):
         print
         print "Output h5 file did not exist"
         os.mkdir(q_outpath)
         print
         print "New one named " + q_outpath + " was created."
-        qdata = np.zeros((repeats, 4), dtype= np.float)
-    else:
-        print
-        print "Output h5 existed. Extra rows will be created."
-        old_qdata = read_h5(q_data_outpath, "a_p_r_auc")
-        qdata = np.zeros((repeats +  old_qdata.shape[0], 4), dtype= np.float)
-        qdata[repeats::] = old_qdata
 
-    # #create outpath
-    # q_data_outpath = q_outpath + "/n_" + str(loops) + "_l_" + str(labels) + "_w_" + str(weights) + ".h5"
-    # save_h5([labels],q_data_outpath, "labels")
-    # save_h5([loops], q_data_outpath, "loops")
 
+    # Run the test
     for i in range(repeats):
         print
         print "round of repeats:", i+1
+
         #train ilp file
         ac_train(ilp, labels, loops, weights, t_cache, outpath)
         print
@@ -214,18 +214,19 @@ def test(ilp, files, gt, labels="", loops=3, weights="", repeats=1, outpath= "",
         print
         print "batch prediction completed"
 
-        #archive data
-        archive_qdata(p_cache + "/", gt, qdata, i, q_data_outpath, (0, 24, 49))
+        #save quality data
+        prob_file = [x for x in os.listdir(p_cache) if ("probs" in x)]
+        predict_path = p_cache + "/" + prob_file[0]
+        save_quality_values(predict_path, gt_path, dense_gt_path, q_data_outpath, (0,49,99))
         print
         print "quality computed"
 
     #save data
     save_h5([filename], q_data_outpath, "filename")
-    save_h5(qdata, q_data_outpath, "a_p_r_auc", None)
     save_h5([labels],q_data_outpath, "labels")
     save_h5([loops], q_data_outpath, "loops")
     print
-    print "saved"
+    print "quality data saved"
 
 if __name__ == '__main__':
     hostname = socket.gethostname()
@@ -234,9 +235,10 @@ if __name__ == '__main__':
     volumes_folder = assign_path(hostname)[2]
     ilp_file = ilp_folder + "100p_cube1.ilp"
     files = volumes_folder + "test_data/100p_cube2.h5/data"
-    gt = volumes_folder + "groundtruth/trimaps/100p_cube2_trimap_t_09.h5"
+    gt_path = volumes_folder + "groundtruth/trimaps/100p_cube2_trimap_t_09.h5"
+    dense_gt_path = volumes_folder + "groundtruth/dense_groundtruth/100p_cube2_dense_gt.h5"
 
-    test(ilp_file, files, gt, 10000, 10, [1,2,3], 1)
+    test(ilp_file, files, gt_path, dense_gt_path, 10000, 1, "", 9)
 
     print
     print "done"
