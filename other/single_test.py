@@ -5,30 +5,32 @@ Created on Thu Oct  1 15:21:51 2015
 @author: stamylew
 """
 
-from subprocess import call
-import socket
 import os
-import numpy as np
-from python_functions.handle_data.new_modify_labels import reduce_labels_in_ilp
-from python_functions.handle_data.archive import archive_qdata
-from python_functions.quality.quality import save_quality_values
-from python_functions.handle_h5.handle_h5 import save_h5, read_h5
+import types
+import socket
+from subprocess import call
+from python_functions.handle_h5.handle_h5 import save_h5
 from python_functions.other.host_config import assign_path
+from python_functions.quality.quality import save_quality_values
+from python_functions.handle_data.new_modify_labels import reduce_labels_in_ilp
 
-#appendages for training and batch prediction commands
-def clear_cache(command, answer):
-    if answer == "y" or answer == "Y":
-        command.append("--clear_cache")
-        return command
-    else:
-        return command
-
+#appendages for training command
 def modify_loop_number(command, n):
-    command.append("-n") 
+    """Modify the loop parameter
+    :param command: shell command for autocontext training
+    :param n: number of loops
+    :return: appended shell command
+    """
+    command.append("-n")
     command.append(str(n))
     return command
-   
+
 def modify_weights(command, weights):
+    """ Modify the weights parameter
+    :param command: shell command for autocontext training
+    :param weights: weighting for the label distribution
+    :return: appended shell command
+    """
     command.append("--weights")
     for n in range(len(weights)):
         command.append(str(weights[n]))
@@ -46,6 +48,16 @@ def ac_train(ilp, labels="", loops=3, weights="", t_cache = "", outpath= ""):
     :param: outpath :   outpath for the ilp file
     :return shell command
     """
+    # Check if given parameters are valid
+    if labels != "":
+        assert type(labels) is types.IntType, "Labels parameter is not an integer: %d" % labels
+
+    assert type(loops) is types.IntType, "Parameter loops is not an integer: %d" % loops
+
+    if weights != "":
+        assert type(weights) is types.ListType, "Parameter weights is not a list: %d" % weights
+        assert len(weights) == loops, "Parameter weights needs to have as many entries as loops."
+        #modify weights
 
     #paths
     hostname = socket.gethostname()
@@ -57,8 +69,8 @@ def ac_train(ilp, labels="", loops=3, weights="", t_cache = "", outpath= ""):
         print
         print "reducing labels to " + str(labels)
         ilp = reduce_labels_in_ilp(ilp, labels)
-    
-    #create outpath    
+
+    #create ilp outpath
     if outpath != "":
         outpath = ilp.split(".")[-2] + "_out.ilp"
 
@@ -66,12 +78,11 @@ def ac_train(ilp, labels="", loops=3, weights="", t_cache = "", outpath= ""):
     command = ["python", autocontext_path, "--train", ilp, "-o", outpath,
                "--cache", t_cache, "--clear_cache", "--ilastik", ilastik_path]
 
-    #modify loop number
+    #modify shell command
     command = modify_loop_number(command, loops)
-    
-    #modify weights
     command = modify_weights(command, weights)
 
+    #call shell command
     call(command)
     return command
 
@@ -86,7 +97,7 @@ def ac_batch_predict(files, t_cache, p_cache = "", overwrite = "no"):
     :return shell command
     """
 
-    #path
+    #paths
     hostname = socket.gethostname()
     autocontext_path = assign_path(hostname)[4]
     ilastik_path = assign_path(hostname)[3]
@@ -109,10 +120,20 @@ def ac_batch_predict(files, t_cache, p_cache = "", overwrite = "no"):
 #test
 def test(ilp, files, gt_path, dense_gt_path, labels="", loops=3, weights="", repeats=1, outpath= "",
          t_cache = "", p_cache = ""):
-    """get quality values of batch predicition for adjusted number of labels, loops and weights
+    """ Run test
+    :param: ilp             : path to ilp project to use for training
+    :param: files           : path to file to do batch prediction on
+    :param: gt_path         : path to trimap groundtruth
+    :param: dense_gt_path   : path to dense groundtruth
+    :param: labels          : amount of labeled pixels to use in training
+    :param: loops           : amount of autocontext loops
+    :param: weights         : weighting of the labels over the autocontext loops
+    :param: repeats         : amount of repeat runs of the test
+    :param: outpath         : outpath for test outputs
+    :param: t_cache         : path to training data cache
+    :param: p_cache         : path to prediction data cache
     """
 
-    # Show test configuration data
     hostname = socket.gethostname()
     print "test information:"
     print
@@ -133,12 +154,6 @@ def test(ilp, files, gt_path, dense_gt_path, labels="", loops=3, weights="", rep
     print "weights:", weights
     print
     print "repeats:", repeats
-    print
-    print "outpath:", outpath
-    print
-    print "t_cache:", t_cache
-    print
-    print "p_cache:", p_cache
 
     # Assign paths
     test_folder_path = assign_path(hostname)[5]
@@ -153,6 +168,13 @@ def test(ilp, files, gt_path, dense_gt_path, labels="", loops=3, weights="", rep
         output = test_folder_path + "/q_data"
     else:
         output = outpath
+
+    print
+    print "outpath:", outpath
+    print
+    print "t_cache:", t_cache
+    print
+    print "p_cache:", p_cache
 
     # Create file tags
     if labels == "":
@@ -177,7 +199,7 @@ def test(ilp, files, gt_path, dense_gt_path, labels="", loops=3, weights="", rep
     file_dir = output + "/" + filename
 
     # Overwrite folder directory
-    file_dir = assign_path(hostname)[0] + "delme"
+    #file_dir = assign_path(hostname)[0] + "delme"
 
     # Check if file directory exists, if not make such directory
     if not os.path.exists(file_dir):
@@ -198,13 +220,12 @@ def test(ilp, files, gt_path, dense_gt_path, labels="", loops=3, weights="", rep
         print
         print "New one named " + q_outpath + " was created."
 
-
     # Run the test
     for i in range(repeats):
         print
         print "round of repeats:", i+1
 
-        #train ilp file
+        #train on ilp project
         ac_train(ilp, labels, loops, weights, t_cache, outpath)
         print
         print "training completed"
@@ -235,10 +256,11 @@ if __name__ == '__main__':
     volumes_folder = assign_path(hostname)[2]
     ilp_file = ilp_folder + "100p_cube1.ilp"
     files = volumes_folder + "test_data/100p_cube2.h5/data"
-    gt_path = volumes_folder + "groundtruth/trimaps/100p_cube2_trimap_t_09.h5"
+    gt_path = volumes_folder + "groundtruth/trimaps/100p_cube2_trimap_t_15.h5"
     dense_gt_path = volumes_folder + "groundtruth/dense_groundtruth/100p_cube2_dense_gt.h5"
 
-    test(ilp_file, files, gt_path, dense_gt_path, 10000, 1, "", 9)
+    test(ilp_file, files, gt_path, dense_gt_path, 10000, 10, "", 10)
+
 
     print
     print "done"

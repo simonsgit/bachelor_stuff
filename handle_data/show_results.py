@@ -13,12 +13,15 @@ import os
 from os.path import isfile, join, isdir
 
 
-def sort_and_extract_qdata(path, fixed_param):
+def sort_and_extract_quality_data(path, fixed_param, measurements):
     """
     :param path:
     :param fixed_param:
+    :param measurements:
     :return:
     """
+    # Find all relevant data folders
+    data_folders = [f for f in os.listdir(path) if (isdir(path)) and (fixed_param in f)]
 
     # Create labels for plot
     if "n_" in fixed_param:
@@ -28,100 +31,101 @@ def sort_and_extract_qdata(path, fixed_param):
         x_dim = "loops"
         fixed = 'l = ' + fixed_param.split("_")[-2]
 
-    qdata_folders = [f for f in os.listdir(path) if (isdir(path)) and (fixed_param in f)]
-    qtuple_list = []
-    for qdata_folder in qdata_folders:
-        inpath = join(path, qdata_folder)
-        qdata = [g for g in os.listdir(inpath) if (isfile(join(inpath, g))) and "h5" in g]
-        datapath = join(inpath, qdata[0])
-        #print datapath
-        xvar = read_h5(datapath, x_dim)
-        xvar = xvar[0]
-        qv = read_h5(datapath, "quality_values")
-        acc= qv[:,0]
-        pre= qv[:,1]
-        rec= qv[:,2]
-        auc= qv[:,3]
-        ri = qv[:,4]
-        voi= qv[:,5]
-        ds = qv[:,6]
-        tp = qv[:,7]
-        fp = qv[:,8]
-        tn = qv[:,9]
-        fn = qv[:,10]
+    # Sort data folders
+    sorting_list = []
+    for data_folder in data_folders:
+        inpath = join(path, data_folder)
+        h5file = [g for g in os.listdir(inpath) if (isfile(join(inpath, g))) and "h5" in g]
+        h5file_path = join(inpath, h5file[0])
+        x_value = read_h5(h5file_path, x_dim)
+        sorting_list.append((x_value, data_folder))
+    sorted_list = sorted(sorting_list, key=lambda tup: tup[0])
+    sorted_data_folders = []
+    for tuple in sorted_list:
+        sorted_data_folders.append(tuple[1])
 
-        qdata_tuple = (xvar,np.mean(acc),np.std(acc),np.mean(pre),np.std(pre),np.mean(rec),np.std(rec),np.mean(auc),np.std(auc),
-                       np.mean(ri), np.std(ri), np.mean(voi), np.std(voi), np.mean(ds), np.std(ds), np.mean(tp), np.std(tp),
-                       np.mean(fp), np.std(fp), np.mean(tn), np.std(tn), np.mean(fn), np.mean(fn))
-        qtuple_list.append(qdata_tuple)
+    # Extract quality data
+    data = []
+    for measurement in measurements:
+        assert str(measurement) in ["accuracy", "precision", "recall", "auc_score", "rand index",
+                                    "variation of information", "true positives", "false positives", "true negatives",
+                                    "false negatives"], "Given Quality measurement %d not valid" % measurement
+        x_values = []
+        mean = []
+        std = []
+        for data_folder in sorted_data_folders:
+            inpath = join(path, data_folder)
+            h5file = [g for g in os.listdir(inpath) if (isfile(join(inpath, g))) and "h5" in g]
+            h5file_path = join(inpath, h5file[0])
+            #print datapath
+            x_param = read_h5(h5file_path, x_dim)
+            x_param = x_param[0]
+            x_values.append(x_param)
+            measurement_data = read_h5(h5file_path, "quality/"+str(measurement))
+            mean.append(np.mean(measurement_data))
+            std.append(np.std(measurement_data))
+        data.append((str(measurement), x_values, mean, std))
 
-    sorted_qtuple = sorted(qtuple_list, key=lambda  tup: tup[0])
-    return x_dim, sorted_qtuple, fixed
+    return x_dim, data, fixed
 
-def create_plot(input, outpath = "/home/stamylew/test_folder/q_data/100p_cube2/diagrams/"):
+
+def create_plot(input_path, fixed_param, measurements, outpath = "/home/stamylew/test_folder/q_data/100p_cube2/diagrams/"):
     """
     :param input:
     :param outpath:
     :return:
     """
 
-    xlabel = input[0]
-    qtuple = input[1]
+    x_dim, data_list, fixed = sort_and_extract_quality_data(input_path, fixed_param, measurements)
 
-    n = len(qtuple)
-    title = 'Quality for ' + input[2]
-
-    xpoints = []
-    apoints = []
-    aerr = []
-    ppoints = []
-    perr = []
-    rpoints = []
-    rerr = []
-    aucpoints = []
-    aucerr = []
-    for i in range(n):
-        xpoints.append(qtuple[i][0])
-        apoints.append(qtuple[i][1])
-        aerr.append(qtuple[i][2])
-        ppoints.append(qtuple[i][3])
-        perr.append(qtuple[i][4])
-        rpoints.append(qtuple[i][5])
-        rerr.append(qtuple[i][6])
-        aucpoints.append(qtuple[i][7])
-        aucerr.append(qtuple[i][8])
-
-    if "loops" == xlabel:
-        xrange = [min(xpoints)-0.5, max(xpoints)+0.5]
-    elif "labels" == xlabel:
-        xrange = [min(xpoints)-1000, max(xpoints)+1000]
-
-    diag_name = outpath + input[2].split(" ")[0] + "_" + input[2].split(" ")[-1] + ".png"
+    # Amount of plots
+    n = len(data_list)
+    title = 'Quality for ' + fixed
 
     plt.figure()
-    plt.subplot(211)
-    plt.plot(xpoints, apoints, '-ro', label = 'accuracy')
-    plt.errorbar(xpoints,apoints, aerr, None, 'r-', 'r')
-    plt.plot(xpoints, ppoints, '-go', label = 'precision')
-    plt.errorbar(xpoints,ppoints, perr, None, 'g-', 'g')
-    plt.plot(xpoints, aucpoints, '-yo', label = 'auc_score')
-    plt.errorbar(xpoints, aucpoints, aucerr, None, 'y-', 'y')
-    plt.title(title)
-    plt.legend(loc = 'best', prop={'size':12})
-    plt.xlabel(xlabel, fontsize=14, color='black')
-    plt.ylabel('score', fontsize=14, color='black')
-    plt.xlim(xrange)
-    plt.subplot(212)
-    plt.plot(xpoints, rpoints, '-bo', label = 'recall')
-    plt.errorbar(xpoints,rpoints, rerr, None, 'b-', 'b')
-    plt.legend(loc = 'best')
-    plt.xlabel(xlabel, fontsize=14, color='black')
-    plt.ylabel('score', fontsize=14, color='black')
-    plt.xlim(xrange)
-    plt.savefig(diag_name)
-    plt.show()
+    x_min = []
+    x_max = []
+    for data in data_list:
+        x_min.append(min(data[1]))
+        x_max.append(max(data[1]))
+        plt.plot(data[1], data[2], label=data[0])
+        plt.errorbar(data[1], data[2], data[3], None)
 
-    return xpoints, apoints, ppoints, rpoints
+    if "loops" == x_dim:
+        xrange = [min(x_min)-0.5, max(x_max)+0.5]
+    elif "labels" == x_dim:
+        xrange = [min(x_min)-1000, max(x_max)+1000]
+
+    diag_name = outpath + fixed.split(" ")[0] + "_" + fixed.split(" ")[-1] + ".png"
+    plt.legend(loc = 'best')
+    plt.title(title)
+    plt.xlim(xrange)
+    plt.xlabel(x_dim, fontsize=14, color='black')
+    plt.ylabel('score', fontsize=14, color='black')
+    plt.show()
+    #
+    # plt.figure()
+    # plt.subplot(211)
+    # plt.plot(xpoints, apoints, '-ro', label = 'accuracy')
+    # plt.errorbar(xpoints,apoints, aerr, None, 'r-', 'r')
+    # plt.plot(xpoints, ppoints, '-go', label = 'precision')
+    # plt.errorbar(xpoints,ppoints, perr, None, 'g-', 'g')
+    # plt.plot(xpoints, aucpoints, '-yo', label = 'auc_score')
+    # plt.errorbar(xpoints, aucpoints, aucerr, None, 'y-', 'y')
+    # plt.title(title)
+    # plt.legend(loc = 'best', prop={'size':12})
+    # plt.xlabel(x_dim, fontsize=14, color='black')
+    # plt.ylabel('score', fontsize=14, color='black')
+    # plt.xlim(xrange)
+    # plt.subplot(212)
+    # plt.plot(xpoints, rpoints, '-bo', label = 'recall')
+    # plt.errorbar(xpoints,rpoints, rerr, None, 'b-', 'b')
+
+    # plt.xlim(xrange)
+    # plt.savefig(diag_name)
+    # plt.show()
+    #
+    # return xpoints, apoints, ppoints, rpoints
 
 
 def compare_plots(measurement, plot_data_sets):
@@ -180,12 +184,13 @@ if __name__ == '__main__':
     path2 = "/home/stamylew/test_folder/q_data/100p_cube2_t09"
     path3 = "/home/stamylew/test_folder/q_data/100p_cube2_t15"
     # print sort_and_extract_qdata(path, "l_1000_")
-    q = sort_and_extract_qdata(path1, "n_3_")
-    create_plot(q)
 
-    r = sort_and_extract_qdata(path2, "l_10000_")
+    #create_plot(path1, "n_3_")
+    x_dim, data, fixed = sort_and_extract_quality_data(path1, "l_20000_", ["precision", "recall"])
+    create_plot(path1, "l_20000_", ["precision", "recall", "rand index"])
+    #print data
 
-    s = sort_and_extract_qdata(path3, "l_10000_")
+
 
     # s = sort_and_extract_qdata(path1, "n_3_")
     # t = sort_and_extract_qdata(path1, "n_4_")

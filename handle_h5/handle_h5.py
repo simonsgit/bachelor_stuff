@@ -22,7 +22,7 @@ def read_h5(path, key=""):
     elif "/" in key:
         data = f[key][...]
     else:
-        assert key in f.keys(), "the given key "+ key +" is not in the file "+ path
+        assert key in f.keys(), "the given key %s is not in the file %s" % (key, path)
         data = f[key][...]
     f.close()
     return data

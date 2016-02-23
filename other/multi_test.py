@@ -15,11 +15,10 @@ def multi_loops(nol, ilp, files, gt, dense_gt, labels="", weights="", repeats=1,
         p_cache = test_folder_path + "/p_cache"
 
     if outpath == "":
-        output = test_folder_path + "/q_data"
+        outpath = test_folder_path + "/q_data"
 
-    for n in range(1,nol+1):
-        test(ilp, files, gt, dense_gt, labels, n, weights, repeats, output, t_cache, p_cache)
-
+    for n in range(9,nol+1):
+        test(ilp, files, gt, dense_gt, labels, n, weights, repeats, outpath, t_cache, p_cache)
 
 
 def multi_labels(label_values,ilp, files, gt, loops=3, weights="", repeats=1, outpath= "",
@@ -33,10 +32,11 @@ def multi_labels(label_values,ilp, files, gt, loops=3, weights="", repeats=1, ou
         p_cache = test_folder_path + "/p_cache"
 
     if outpath == "":
-        output = test_folder_path + "/q_data"
+        outpath = test_folder_path + "/q_data"
 
     for n in label_values:
-        test(ilp, files, gt, n, loops, weights, repeats, output, t_cache, p_cache)
+        test(ilp, files, gt, n, loops, weights, repeats, outpath, t_cache, p_cache)
+
 
 def multi_weights(weightings, ilp, files, gt, loops, labels, repeats=1, outpath ="",
                   t_cache= "", p_cache= ""):

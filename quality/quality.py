@@ -126,7 +126,7 @@ def calculate_roc_auc_score(predict, gt):
     return auc_score
 
 
-def get_segmentation(predict, gt, cleanCloseSeeds=True, returnSeedsOnly=False):
+def get_segmentation(predict, cleanCloseSeeds=True, returnSeedsOnly=False):
 
     super_pixels = wsDtSegmentation(predict, 0.5, 0, 10, 2, 2, cleanCloseSeeds, returnSeedsOnly)
     save_h5(super_pixels, "/home/stamylew/delme/super_pixels.h5", "data", None)
@@ -204,12 +204,11 @@ def get_quality_values(predict, gt, dense_gt):
     no_of_true_neg, no_of_false_neg = true_and_false_neg(relevant_predict, relevant_gt)
 
 
-    segmentation = get_segmentation(adjusted_predict, gt)
+    segmentation = get_segmentation(adjusted_predict)
     save_h5(segmentation, "/home/stamylew/delme/segmap.h5", "data", None)
     ri_data = skl.randIndex(segmentation.flatten().astype(np.uint32), dense_gt.flatten().astype(np.uint32), True)
     voi_data = skl.variationOfInformation(segmentation.flatten().astype(np.uint32), dense_gt.flatten().astype(np.uint32), True)
 
-    quality_values = ()
 
     return acc, pre, rec, auc_score, ri_data, voi_data, no_of_true_pos, no_of_false_pos, no_of_true_neg, no_of_false_neg
 

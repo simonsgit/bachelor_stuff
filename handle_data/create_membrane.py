@@ -10,12 +10,13 @@ import numpy as np
 import vigra
 
 def prepare_data(data):
+
     if 1 in np.unique(data):
         print
         print "label 1 in data"
         labeled_one = data == 1
-        modified = labeled_one * 11 + data
-        assert 12 not in np.unique((data))
+        modified = labeled_one * 1111 + data
+        assert 1112 not in np.unique((data))
         return modified
     else:
         return data
@@ -97,11 +98,11 @@ def label_neurons(data, neuron_label):
                     data[i,j,k] = neuron_label
     return data
 
-def filter_membrane(data):
-    prepared_data = prepare_data(data)
+def filter_membrane(dense_gt_data):
+    prepared_data = prepare_data(dense_gt_data)
     memb = create_membrane(prepared_data)
     memb_data = label_neurons(memb, 0)
-    return memb_data
+    return memb_data, dense_gt_data
 
 if __name__ == '__main__':
     data = read_h5("/home/stamylew/volumes/groundtruth/dense_groundtruth/100p_cube1_dense_gt.h5", "data")
