@@ -2,8 +2,6 @@ __author__ = 'stamylew'
 
 import os
 import numpy as np
-import pylab
-import vigra
 import vigra.graphs as vg
 import vigra.filters as vf
 from python_functions.handle_h5.handle_h5 import read_h5, save_h5
@@ -127,12 +125,20 @@ def calculate_roc_auc_score(predict, gt):
 
 
 def get_segmentation(predict, cleanCloseSeeds=True, returnSeedsOnly=False):
+    """ Get segmentation through watershed and agglomerative clustering
+    :param predict: prediction map
+    :return: segmentation map
+    """
 
-    super_pixels = wsDtSegmentation(predict, 0.5, 0, 10, 2, 2, cleanCloseSeeds, returnSeedsOnly)
+    #use watershed and save superpixels map
+    super_pixels = wsDtSegmentation(predict, 0.5, 4000, 10000, 2, 1, cleanCloseSeeds, returnSeedsOnly)
+    print "#superpixels", len(np.unique(super_pixels))
     save_h5(super_pixels, "/home/stamylew/delme/super_pixels.h5", "data", None)
+
+    #smooth prediction map
     probs = vf.gaussianSmoothing(predict, 0.1)
+
     save_h5(probs, "/home/stamylew/delme/probs.h5", "data", None)
-    median = round(np.median(np.unique(super_pixels)))
 
     #make grid graph
     grid_graph = vg.gridGraph(super_pixels.shape, False)
@@ -140,14 +146,18 @@ def get_segmentation(predict, cleanCloseSeeds=True, returnSeedsOnly=False):
 
     #make region adjacency graph
     rag = vg.regionAdjacencyGraph(grid_graph, super_pixels)
-    #accumulate node features from grid graph node map
+
+    #accumulate edge features from grid graph node map
     edge_weights = rag.accumulateEdgeFeatures(grid_graph_edge_indicator)
 
     #do agglomerative clustering
     labels = vg.agglomerativeClustering(rag, edge_weights, edgeLengths=None,nodeFeatures=None,nodeSizes=None,
-            nodeLabels=None,nodeNumStop=None,beta=0,metric='l1',wardness=1.0,out=None)
+            nodeLabels=None,nodeNumStop=None,beta=0,metric='l1',wardness=0.2,out=None)
 
+    #project labels back to data
     segmentation = rag.projectLabelsToBaseGraph(labels)
+    print "#nodes in segmentation", len(np.unique(segmentation))
+    save_h5(segmentation, "/home/stamylew/delme/segmap.h5", "data", None)
 
     return segmentation
 
@@ -196,6 +206,7 @@ def get_quality_values(predict, gt, dense_gt):
     """
     """
     adjusted_predict = adjust_predict(predict)
+    save_h5(adjusted_predict, "/home/stamylew/delme/prob.h5", "data")
     relevant_predict, relevant_gt = exclude_ignore_label(adjusted_predict, gt)
     acc, pre, rec = accuracy_precision_recall(relevant_predict, relevant_gt)
     auc_score = calculate_roc_auc_score(relevant_predict, relevant_gt)
@@ -203,7 +214,7 @@ def get_quality_values(predict, gt, dense_gt):
     no_of_true_pos, no_of_false_pos = true_and_false_pos(relevant_predict, relevant_gt)
     no_of_true_neg, no_of_false_neg = true_and_false_neg(relevant_predict, relevant_gt)
 
-
+    print "#nodes in dense gt", len(np.unique(dense_gt))
     segmentation = get_segmentation(adjusted_predict)
     save_h5(segmentation, "/home/stamylew/delme/segmap.h5", "data", None)
     ri_data = skl.randIndex(segmentation.flatten().astype(np.uint32), dense_gt.flatten().astype(np.uint32), True)
@@ -232,7 +243,7 @@ def save_quality_values(predict_path, gt_path, dense_gt_path, outpath, slices):
     predict_data = read_h5(predict_path, "exported_data")
     gt_data = read_h5(gt_path)
     dense_gt_data = read_h5(dense_gt_path)
-    all_quality_data = get_quality_values(predict_data, gt_data, dense_gt_data)
+    #all_quality_data = get_quality_values(predict_data, gt_data, dense_gt_data)
 
 
     #get quality values
@@ -275,7 +286,7 @@ if __name__ == '__main__':
     dense_gt_path = "/home/stamylew/volumes/groundtruth/dense_groundtruth/100p_cube2_dense_gt.h5"
     dense_gt = read_h5(dense_gt_path)
     outpath = "/home/stamylew/delme/n_1_l_10000_w_none/n_1_l_10000_w_none.h5"
-    print get_quality_values(predict, gt, dense_gt)
+    print get_quality_values(predict, gt, dense_gt)[4:6]
     #save_quality_values(predict_path, gt_path, dense_gt_path, outpath)
 
     print "done"

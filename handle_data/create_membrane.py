@@ -50,6 +50,7 @@ def create_membrane(data):
                     data[data.shape[1]-1,j,k] = 1
     return data
 
+
 def create_membrane2(data, r):
     for i in range(data.shape[0]-r):
         for j in range(data.shape[1]-r):
@@ -98,11 +99,14 @@ def label_neurons(data, neuron_label):
                     data[i,j,k] = neuron_label
     return data
 
+
 def filter_membrane(dense_gt_data):
     prepared_data = prepare_data(dense_gt_data)
+    print "prepared data unique", np.unique(prepared_data)
     memb = create_membrane(prepared_data)
     memb_data = label_neurons(memb, 0)
     return memb_data, dense_gt_data
+
 
 if __name__ == '__main__':
     data = read_h5("/home/stamylew/volumes/groundtruth/dense_groundtruth/100p_cube1_dense_gt.h5", "data")

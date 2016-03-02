@@ -86,10 +86,11 @@ def create_plot(input_path, fixed_param, measurements, outpath = "/home/stamylew
     x_min = []
     x_max = []
     for data in data_list:
+        position = data_list.index(data)
+        print position
         x_min.append(min(data[1]))
         x_max.append(max(data[1]))
-        plt.plot(data[1], data[2], label=data[0])
-        plt.errorbar(data[1], data[2], data[3], None)
+        plt.errorbar(data[1], data[2], data[3], None, label=data[0])
 
     if "loops" == x_dim:
         xrange = [min(x_min)-0.5, max(x_max)+0.5]
@@ -97,6 +98,7 @@ def create_plot(input_path, fixed_param, measurements, outpath = "/home/stamylew
         xrange = [min(x_min)-1000, max(x_max)+1000]
 
     diag_name = outpath + fixed.split(" ")[0] + "_" + fixed.split(" ")[-1] + ".png"
+
     plt.legend(loc = 'best')
     plt.title(title)
     plt.xlim(xrange)
@@ -160,7 +162,7 @@ def compare_plots(measurement, plot_data_sets):
         y_points = []
         y_error = []
         y_data = plot_data[1]
-        colors = ['-r', '-b']
+        colors = ['-r', '-b', '-g']
         for i in range(len(y_data)):
             x_points.append(y_data[i][0])
             y_points.append(y_data[i][m])
@@ -169,11 +171,11 @@ def compare_plots(measurement, plot_data_sets):
             x_range = [min(x_points)-0.5, max(x_points)+0.5]
         elif "labels" == x_label:
             x_range = [min(x_points)-1000, max(x_points)+1000]
-        plt.plot(x_points, y_points, '-', label = plot_data[2])
+        plt.plot(x_points, y_points, colors[i], label = plot_data[2])
         plt.errorbar(x_points, y_points, y_error, None)
         plt.legend()
     plt.xlabel(x_label, fontsize=14, color='black')
-    plt.ylabel('score', fontsize=14, color='black')
+    #plt.ylabel('score', fontsize=14, color='black')
     plt.title(title)
 
     plt.xlim(x_range)
@@ -187,7 +189,7 @@ if __name__ == '__main__':
 
     #create_plot(path1, "n_3_")
     x_dim, data, fixed = sort_and_extract_quality_data(path1, "l_20000_", ["precision", "recall"])
-    create_plot(path1, "l_20000_", ["precision", "recall", "rand index"])
+    create_plot(path1, "l_10000_", ["precision", "recall", "rand index", "variation of information"])
     #print data
 
 
