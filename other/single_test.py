@@ -13,6 +13,7 @@ from python_functions.handle_h5.handle_h5 import save_h5
 from python_functions.other.host_config import assign_path
 from python_functions.quality.quality import save_quality_values
 from python_functions.handle_data.new_modify_labels import reduce_labels_in_ilp
+from python_functions.handle_data.modify_labels import concentrated_labels
 
 #appendages for training command
 def modify_loop_number(command, n):
@@ -68,7 +69,8 @@ def ac_train(ilp, labels="", loops=3, weights="", t_cache = "", outpath= ""):
     if labels != "":
         print
         print "reducing labels to " + str(labels)
-        ilp = reduce_labels_in_ilp(ilp, labels)
+        # ilp = reduce_labels_in_ilp(ilp, labels)
+        concentrated_labels(ilp, labels)
 
     #create ilp outpath
     if outpath != "":
@@ -155,14 +157,27 @@ def test(ilp, files, gt_path, dense_gt_path, labels="", loops=3, weights="", rep
     print
     print "repeats:", repeats
 
+    # Collect the test specifications
+    ilp_split = ilp.split(".")[-2]
+    training_file = ilp_split.split("/")[-1]
+
+    gt_split = gt_path.split(".")[-2]
+    gt_file = gt_split.split("/")[-1]
+
+
     # Assign paths
+    filesplit = files.split(".")[-2]
+    filename = filesplit.split("/")[-1]
+
     test_folder_path = assign_path(hostname)[5]
 
     if t_cache == "":
         t_cache = test_folder_path + "/t_cache"
 
     if p_cache == "":
-        p_cache = test_folder_path + "/p_cache"
+        p_cache = test_folder_path + "/p_cache/" + filename
+        if not os.path.exists(p_cache):
+            os.mkdir(p_cache)
 
     if outpath == "":
         output = test_folder_path + "/q_data"
@@ -188,8 +203,6 @@ def test(ilp, files, gt_path, dense_gt_path, labels="", loops=3, weights="", rep
         weight_tag = str(weights)
 
     # Make folder for quality data
-    filesplit = files.split(".")[-2]
-    filename = filesplit.split("/")[-1]
 
     if "hand_drawn" in ilp:
         filename += "_hand_drawn"
@@ -199,7 +212,7 @@ def test(ilp, files, gt_path, dense_gt_path, labels="", loops=3, weights="", rep
     file_dir = output + "/" + filename
 
     # Overwrite folder directory
-    #file_dir = assign_path(hostname)[0] + "delme"
+    file_dir = assign_path(hostname)[0] + "delme"
 
     # Check if file directory exists, if not make such directory
     if not os.path.exists(file_dir):
@@ -212,6 +225,7 @@ def test(ilp, files, gt_path, dense_gt_path, labels="", loops=3, weights="", rep
     q_outpath = file_dir + "/n_" + str(loops) + "_l_" + str(label_tag) + "_w_" + weight_tag
     q_data_outpath = q_outpath + "/n_" + str(loops) + "_l_" + str(labels) + "_w_" + weight_tag + ".h5"
 
+
     # Check if test directory exists, if not make such directory
     if not os.path.exists(q_outpath):
         print
@@ -220,10 +234,11 @@ def test(ilp, files, gt_path, dense_gt_path, labels="", loops=3, weights="", rep
         print
         print "New one named " + q_outpath + " was created."
 
+
     # Run the test
     for i in range(repeats):
         print
-        print "round of repeats:", i+1
+        print "round of repeats %d of %d" % (i+1, repeats)
 
         #train on ilp project
         ac_train(ilp, labels, loops, weights, t_cache, outpath)
@@ -239,13 +254,19 @@ def test(ilp, files, gt_path, dense_gt_path, labels="", loops=3, weights="", rep
         prob_file = [x for x in os.listdir(p_cache) if ("probs" in x)]
         predict_path = p_cache + "/" + prob_file[0]
         save_quality_values(predict_path, gt_path, dense_gt_path, q_data_outpath, (0,49,99))
-        print
-        print "quality computed"
 
-    #save data
-    save_h5([filename], q_data_outpath, "filename")
-    save_h5([labels],q_data_outpath, "labels")
-    save_h5([loops], q_data_outpath, "loops")
+        #save test specification data
+        save_h5([training_file], q_data_outpath, "training file")
+        save_h5([filename], q_data_outpath, "filename")
+        save_h5([gt_file], q_data_outpath, "gt_file")
+        save_h5([labels],q_data_outpath, "labels")
+        save_h5([loops], q_data_outpath, "loops")
+        print
+        print "quality data saved"
+
+    #save configuration data
+    call(["cp", predict_path, q_outpath])
+
     print
     print "quality data saved"
 
@@ -255,11 +276,11 @@ if __name__ == '__main__':
     ilp_folder = assign_path(hostname)[1]
     volumes_folder = assign_path(hostname)[2]
     ilp_file = ilp_folder + "100p_cube1.ilp"
-    files = volumes_folder + "test_data/100p_cube2.h5/data"
-    gt_path = volumes_folder + "groundtruth/trimaps/100p_cube2_trimap_t_15.h5"
-    dense_gt_path = volumes_folder + "groundtruth/dense_groundtruth/100p_cube2_dense_gt.h5"
+    files = volumes_folder + "test_data/100p_cube3.h5/data"
+    gt_path = volumes_folder + "groundtruth/trimaps/100p_cube3_trimap_t_10.h5"
+    dense_gt_path = volumes_folder + "groundtruth/dense_groundtruth/100p_cube3_dense_gt.h5"
 
-    test(ilp_file, files, gt_path, dense_gt_path, 10000, 10, "", 10)
+    test(ilp_file, files, gt_path, dense_gt_path, 1005, 2, "", 2)
 
 
     print

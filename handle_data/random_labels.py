@@ -114,7 +114,7 @@ def limit_label(data, limit, nolp=""):
     #reduces number labeled pixels if limit < nol
     if limit < nol:
         percentage = limit / nol
-
+        print "percentage", percentage
         limited_data = filter_all_labels(data, percentage)
 
         return limited_data

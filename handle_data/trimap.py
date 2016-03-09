@@ -102,7 +102,7 @@ def create_trimap(dense_gt_path, thickness):
     memb_outpath = "/home/stamylew/volumes/groundtruth/memb/" + filename + "_memb.h5"
     save_h5(memb_data, memb_outpath, "data")
     thickness_tag = thickness_string.split(".")[0] + thickness_string.split(".")[1]
-    trimap_outpath = "/home/stamylew/volumes/groundtruth/trimaps/" + filename + "_trimap_" + thickness_tag +".h5"
+    trimap_outpath = "/home/stamylew/volumes/groundtruth/trimaps/" + filename + "_trimap_t_" + thickness_tag +".h5"
     save_h5(trimap, trimap_outpath, "data")
 
     return trimap
@@ -114,11 +114,11 @@ def create_trimap(dense_gt_path, thickness):
     
 if __name__ == '__main__':
     
-    raw_data_path = "/home/stamylew/volumes/test_data/100p_cube3.h5"
-    dense_gt_path = "/home/stamylew/volumes/groundtruth/dense_groundtruth/100p_cube3_dense_gt.h5"
+    raw_data_path = "/home/stamylew/volumes/test_data/200p_cube4.h5"
+    dense_gt_path = "/home/stamylew/volumes/groundtruth/dense_groundtruth/200p_cube3_dense_gt.h5"
     dgt = read_h5(dense_gt_path)
     print "dgt", np.unique(dgt)
-    trimap = create_trimap(dense_gt_path, 1.5)
+    trimap = create_trimap(dense_gt_path, 1.0)
     #print "trimap", trimap[0:5]
 
     print "done"

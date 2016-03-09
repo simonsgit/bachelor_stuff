@@ -124,42 +124,48 @@ def calculate_roc_auc_score(predict, gt):
     return auc_score
 
 
-def get_segmentation(predict, cleanCloseSeeds=True, returnSeedsOnly=False):
+def get_segmentation(predict, pmin=0.5, minMemb=10, minSeg=10, sigMin=6, sigWeights=1, sigSmooth=0.1, cleanCloseSeeds=True, returnSeedsOnly=False):
     """ Get segmentation through watershed and agglomerative clustering
     :param predict: prediction map
     :return: segmentation map
     """
-
     #use watershed and save superpixels map
-    super_pixels = wsDtSegmentation(predict, 0.5, 4000, 10000, 2, 1, cleanCloseSeeds, returnSeedsOnly)
+    super_pixels = wsDtSegmentation(predict, pmin, minMemb, minSeg, sigMin, sigWeights, cleanCloseSeeds, returnSeedsOnly)
+    seeds = wsDtSegmentation(predict, pmin, minMemb, minSeg, sigMin, sigWeights, cleanCloseSeeds, True)
+    # save_h5(seeds, "/home/stamylew/delme/seeds.h5", "data")
+    print
     print "#superpixels", len(np.unique(super_pixels))
-    save_h5(super_pixels, "/home/stamylew/delme/super_pixels.h5", "data", None)
+    # save_h5(super_pixels, "/home/stamylew/delme/super_pixels.h5", "data")
 
     #smooth prediction map
-    probs = vf.gaussianSmoothing(predict, 0.1)
+    probs = vf.gaussianSmoothing(predict, sigSmooth)
 
-    save_h5(probs, "/home/stamylew/delme/probs.h5", "data", None)
+    # save_h5(probs, "/home/stamylew/delme/probs.h5", "data")
 
     #make grid graph
     grid_graph = vg.gridGraph(super_pixels.shape, False)
+    print
+    print "grid graph", grid_graph
     grid_graph_edge_indicator = vg.edgeFeaturesFromImage(grid_graph, probs)
 
     #make region adjacency graph
     rag = vg.regionAdjacencyGraph(grid_graph, super_pixels)
+    print
+    print "rag", rag
 
     #accumulate edge features from grid graph node map
     edge_weights = rag.accumulateEdgeFeatures(grid_graph_edge_indicator)
 
     #do agglomerative clustering
-    labels = vg.agglomerativeClustering(rag, edge_weights, edgeLengths=None,nodeFeatures=None,nodeSizes=None,
-            nodeLabels=None,nodeNumStop=None,beta=0,metric='l1',wardness=0.2,out=None)
+    labels = vg.agglomerativeClustering(rag, edge_weights, edgeLengths=None, nodeFeatures=None, nodeSizes=None,
+            nodeLabels=None, nodeNumStop=None, beta=0, metric='l1', wardness=0.2, out=None)
 
     #project labels back to data
     segmentation = rag.projectLabelsToBaseGraph(labels)
     print "#nodes in segmentation", len(np.unique(segmentation))
-    save_h5(segmentation, "/home/stamylew/delme/segmap.h5", "data", None)
+    # save_h5(segmentation, "/home/stamylew/delme/segmap.h5", "data", None)
 
-    return segmentation
+    return segmentation, super_pixels
 
 
 def get_data_size(predict, gt):
@@ -201,12 +207,17 @@ def true_and_false_neg(predict, gt, pos_label=1):
 
     return no_of_neg_pos, no_of_false_neg
 
+def rand_index_variation_of_information(segmentation, dense_gt):
+    ri =  skl.randIndex(segmentation.flatten().astype(np.uint32), dense_gt.flatten().astype(np.uint32), True)
+    voi = skl.variationOfInformation(segmentation.flatten().astype(np.uint32), dense_gt.flatten().astype(np.uint32), True)
+    return ri, voi
+
 
 def get_quality_values(predict, gt, dense_gt):
     """
     """
     adjusted_predict = adjust_predict(predict)
-    save_h5(adjusted_predict, "/home/stamylew/delme/prob.h5", "data")
+    # save_h5(adjusted_predict, "/home/stamylew/delme/prob.h5", "data")
     relevant_predict, relevant_gt = exclude_ignore_label(adjusted_predict, gt)
     acc, pre, rec = accuracy_precision_recall(relevant_predict, relevant_gt)
     auc_score = calculate_roc_auc_score(relevant_predict, relevant_gt)
@@ -215,12 +226,16 @@ def get_quality_values(predict, gt, dense_gt):
     no_of_true_neg, no_of_false_neg = true_and_false_neg(relevant_predict, relevant_gt)
 
     print "#nodes in dense gt", len(np.unique(dense_gt))
-    segmentation = get_segmentation(adjusted_predict)
-    save_h5(segmentation, "/home/stamylew/delme/segmap.h5", "data", None)
+    segmentation, super_pixels = get_segmentation(adjusted_predict)
+    # save_h5(segmentation, "/home/stamylew/delme/segmap.h5", "data", None)
     ri_data = skl.randIndex(segmentation.flatten().astype(np.uint32), dense_gt.flatten().astype(np.uint32), True)
     voi_data = skl.variationOfInformation(segmentation.flatten().astype(np.uint32), dense_gt.flatten().astype(np.uint32), True)
-
-
+    sp_ri = skl.randIndex(super_pixels.flatten().astype(np.uint32), dense_gt.flatten().astype(np.uint32), True)
+    sp_voi = skl.variationOfInformation(super_pixels.flatten().astype(np.uint32), dense_gt.flatten().astype(np.uint32), True)
+    print
+    print "super pixels values", (sp_ri, sp_voi)
+    print
+    print "segmentation values", (ri_data, voi_data)
     return acc, pre, rec, auc_score, ri_data, voi_data, no_of_true_pos, no_of_false_pos, no_of_true_neg, no_of_false_neg
 
 
@@ -278,15 +293,80 @@ def save_quality_values(predict_path, gt_path, dense_gt_path, outpath, slices):
     plt.plot(fpr, tpr)
     plt.savefig(im_outpath + "roc_curve_test.png")
 
-if __name__ == '__main__':
-    predict_path = "/home/stamylew/test_folder/p_cache/100p_cube2_probs.h5"
-    predict = read_h5(predict_path)
-    gt_path = "/home/stamylew/volumes/groundtruth/trimaps/100p_cube2_trimap_t_05.h5"
-    gt = read_h5(gt_path)
-    dense_gt_path = "/home/stamylew/volumes/groundtruth/dense_groundtruth/100p_cube2_dense_gt.h5"
-    dense_gt = read_h5(dense_gt_path)
-    outpath = "/home/stamylew/delme/n_1_l_10000_w_none/n_1_l_10000_w_none.h5"
-    print get_quality_values(predict, gt, dense_gt)[4:6]
-    #save_quality_values(predict_path, gt_path, dense_gt_path, outpath)
+def redo_quality(block_path):
+    folder_list = [f for f in os.listdir(block_path)]
+    print "folder_list", folder_list
+    for f in folder_list:
+        g= os.path.join(block_path, f)
+        prob_list = [h for h in os.listdir(g)]
+        print prob_list
 
-    print "done"
+def test_wsDt_agglCl_configs(predict_path, dense_gt_path, pmin=0.5, minMemb=10, minSeg=10, sigMin=2, sigWeights=2, sigSmooth=0.1):
+    """
+    :param predict_path:
+    :param dense_gt_path:
+    :param pmin:
+    :param minMemb:
+    :param minSeg:
+    :param sigMin:
+    :param sigWeights:
+    :param sigSmooth:
+    :return:
+    """
+
+    #get rand index and variation of information
+    predict_data = read_h5(predict_path)
+    adjusted_predict_data = adjust_predict(predict_data)
+    dense_gt_data = read_h5(dense_gt_path)
+    seg, sup = get_segmentation(adjusted_predict_data,pmin,minMemb,minSeg,sigMin,sigWeights,sigSmooth)
+    ri, voi = rand_index_variation_of_information(seg, dense_gt_data)
+    print "ri, voi", ri, voi
+
+    config = predict_path.split("/")[-2]
+    filename = config + "_" + predict_path.split("/")[-1]
+    outpath_folder = "/home/stamylew/test_folder/q_data/wsDt_agglCl_tests/"
+    outpath = outpath_folder + filename
+
+    key = "sigMin_" + str(sigMin) + "_sigWeights_" + str(sigWeights) + "_sigSmooth_" + str(sigSmooth)
+
+    if not os.path.exists(outpath):
+        print "Output h5 file did not exist."
+        data = np.zeros((1,2))
+        data[0,0] = ri
+        data[0,1] = voi
+        save_h5(data, outpath, key, None)
+    else:
+        old_data = read_h5(outpath, key)
+        data = np.zeros((1,2))
+        data[0,0] = ri
+        data[0,1] = voi
+        new_data = np.vstack((old_data, data))
+        save_h5(new_data, outpath, key, None)
+
+
+if __name__ == '__main__':
+    # predict_path1 = "/home/stamylew/test_folder/q_data/100p_cube3/n_3_l_10000_w_none/100p_cube3_probs.h5"
+    # predict1 = read_h5(predict_path1)
+    #
+    # predict_path2 = "/home/stamylew/test_folder/q_data/200p_cube3/n_5_l_10000_w_none/200p_cube3_probs.h5"
+    # predict2 = read_h5(predict_path2)
+    #
+    # gt_path1 = "/home/stamylew/volumes/groundtruth/trimaps/100p_cube3_trimap_t_15.h5"
+    # gt1 = read_h5(gt_path1)
+    #
+    # gt_path2 = "/home/stamylew/volumes/groundtruth/trimaps/200p_cube3_trimap_t_15.h5"
+    # gt2 = read_h5(gt_path2)
+    #
+    # dense_gt_path1 = "/home/stamylew/volumes/groundtruth/dense_groundtruth/100p_cube3_dense_gt.h5"
+    # dense_gt1 = read_h5(dense_gt_path1)
+    #
+    # dense_gt_path2 = "/home/stamylew/volumes/groundtruth/dense_groundtruth/200p_cube3_dense_gt.h5"
+    # dense_gt2 = read_h5(dense_gt_path2)
+
+    #outpath = "/home/stamylew/delme/n_1_l_10000_w_none/n_1_l_10000_w_none.h5"
+    # print
+    # seg, sup = get_segmentation(adjust_predict(predict1))
+    # ri, voi = rand_index_variation_of_information(seg, dense_gt1)
+    # print ri, voi
+    redo_quality("/home/stamylew/test_folder/q_data/200p_cube3")
+    # print "done"
