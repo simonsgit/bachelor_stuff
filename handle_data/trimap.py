@@ -114,8 +114,8 @@ def create_trimap(dense_gt_path, thickness):
     
 if __name__ == '__main__':
     
-    raw_data_path = "/home/stamylew/volumes/test_data/200p_cube4.h5"
-    dense_gt_path = "/home/stamylew/volumes/groundtruth/dense_groundtruth/200p_cube3_dense_gt.h5"
+    raw_data_path = "/home/stamylew/volumes/test_data/100p_cube1.h5"
+    dense_gt_path = "/home/stamylew/volumes/groundtruth/dense_groundtruth/100p_cube1_dense_gt.h5"
     dgt = read_h5(dense_gt_path)
     print "dgt", np.unique(dgt)
     trimap = create_trimap(dense_gt_path, 1.0)

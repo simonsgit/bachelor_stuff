@@ -74,7 +74,8 @@ def concentrated_labels(ilp_path, labels):
     bigger_slice_no = random_slice_no+1
     print
     print "random_slice_no", random_slice_no
-    random_slice = random_block[:,:,random_slice_no]
+    random_slice = random_block[:,:,random_slice_no:random_slice_no+1]
+    print "random slice", random_slice.shape
     label_number = float(get_number_of_labels(random_slice))
 
     while label_number < labels:
@@ -145,5 +146,5 @@ if __name__ == '__main__':
     # mod_ilp = reduce_labels_in_ilp(ilp_path, 1000)
     # print "Amount of labeled pixels:", check_ilp_labels(mod_ilp)
 
-    ilp_path = "/home/stamylew/ilastik_projects/100p_cube1.ilp"
-    concentrated_data = concentrated_labels(ilp_path, 1000)
+    ilp_path = "/home/stamylew/ilastik_projects/200p_cube1.ilp"
+    concentrated_data = concentrated_labels(ilp_path, 20000)

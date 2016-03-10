@@ -49,7 +49,7 @@ def sort_and_extract_quality_data(path, fixed_param, measurements):
     for measurement in measurements:
         assert str(measurement) in ["accuracy", "precision", "recall", "auc_score", "rand index",
                                     "variation of information", "true positives", "false positives", "true negatives",
-                                    "false negatives"], "Given Quality measurement %d not valid" % measurement
+                                    "false negatives"], "Given Quality measurement %s not valid" % measurement
         x_values = []
         mean = []
         std = []
@@ -158,7 +158,7 @@ def compare_plots(inpaths, fixed_params, measurements):
 
 
 if __name__ == '__main__':
-    path1 = "/home/stamylew/test_folder/q_data/200p_cube3_t05"
+    path1 = "/home/stamylew/test_folder/q_data/100p_cube3"
     path2 = "/home/stamylew/test_folder/q_data/200p_cube3"
     path3 = "/home/stamylew/test_folder/q_data/200p_cube3"
     # print sort_and_extract_qdata(path, "l_1000_")
@@ -174,9 +174,9 @@ if __name__ == '__main__':
     #x_dim, data, fixed = sort_and_extract_quality_data(path1, "l_20000_", ["precision", "recall"])
 
     # create_plot(path1, "l_10000_", ["precision", "recall", "rand index"])
-    # create_plot(path1, "l_10000_", ["variation of information"])
+    create_plot(path1, fixed_param1, [measurement4])
 
-    compare_plots([path1, path2], [fixed_param2], [measurement1])
+    # compare_plots([path1, path2], [fixed_param2], [measurement1])
     # print data
 
 

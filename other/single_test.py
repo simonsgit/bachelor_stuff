@@ -12,8 +12,8 @@ from subprocess import call
 from python_functions.handle_h5.handle_h5 import save_h5
 from python_functions.other.host_config import assign_path
 from python_functions.quality.quality import save_quality_values
-from python_functions.handle_data.new_modify_labels import reduce_labels_in_ilp
-from python_functions.handle_data.modify_labels import concentrated_labels
+from python_functions.handle_data.new_modify_labels import reduce_labels_in_ilp, concentrated_labels
+# from python_functions.handle_data.modify_labels import concentrated_labels
 
 #appendages for training command
 def modify_loop_number(command, n):
@@ -69,8 +69,7 @@ def ac_train(ilp, labels="", loops=3, weights="", t_cache = "", outpath= ""):
     if labels != "":
         print
         print "reducing labels to " + str(labels)
-        # ilp = reduce_labels_in_ilp(ilp, labels)
-        concentrated_labels(ilp, labels)
+        ilp = reduce_labels_in_ilp(ilp, labels)
 
     #create ilp outpath
     if outpath != "":
@@ -159,15 +158,16 @@ def test(ilp, files, gt_path, dense_gt_path, labels="", loops=3, weights="", rep
 
     # Collect the test specifications
     ilp_split = ilp.split(".")[-2]
-    training_file = ilp_split.split("/")[-1]
+    training_file = "training file: "+ilp_split.split("/")[-1]
 
     gt_split = gt_path.split(".")[-2]
-    gt_file = gt_split.split("/")[-1]
+    trimap_file = "trimap file: " + gt_split.split("/")[-1]
 
 
     # Assign paths
     filesplit = files.split(".")[-2]
     filename = filesplit.split("/")[-1]
+    prediction_file = "prediction file: "+ filename
 
     test_folder_path = assign_path(hostname)[5]
 
@@ -212,7 +212,7 @@ def test(ilp, files, gt_path, dense_gt_path, labels="", loops=3, weights="", rep
     file_dir = output + "/" + filename
 
     # Overwrite folder directory
-    file_dir = assign_path(hostname)[0] + "delme"
+    # file_dir = assign_path(hostname)[0] + "delme"
 
     # Check if file directory exists, if not make such directory
     if not os.path.exists(file_dir):
@@ -256,17 +256,19 @@ def test(ilp, files, gt_path, dense_gt_path, labels="", loops=3, weights="", rep
         save_quality_values(predict_path, gt_path, dense_gt_path, q_data_outpath, (0,49,99))
 
         #save test specification data
-        save_h5([training_file], q_data_outpath, "training file")
-        save_h5([filename], q_data_outpath, "filename")
-        save_h5([gt_file], q_data_outpath, "gt_file")
-        save_h5([labels],q_data_outpath, "labels")
-        save_h5([loops], q_data_outpath, "loops")
+        save_h5([training_file, prediction_file, trimap_file], q_data_outpath, "used files", None)
+        save_h5([labels],q_data_outpath, "autocontext_parameters/#labels")
+        save_h5([loops], q_data_outpath, "autocontext_parameters/#loops")
+        save_h5([str(weight_tag)], q_data_outpath, "autocontext_parameters/weights")
         print
         print "quality data saved"
 
     #save configuration data
     call(["cp", predict_path, q_outpath])
-
+    save_h5(["pmin", "minMemb", "minSeg", "sigMin", "sigWeights", "sigSmooth", "cleanCloseSeeds", "returnSeedsOnly"],
+            q_data_outpath, "segmentation/wsDt parameters", None)
+    save_h5(["edge_weights", "edgeLengths", "nodeFeatures", "nodeSizes", "nodeLabels", "nodeNumStop", "beta", "metric",
+             "wardness", "out"], q_data_outpath, "segmentation/aggCl parameters", None)
     print
     print "quality data saved"
 
@@ -280,7 +282,7 @@ if __name__ == '__main__':
     gt_path = volumes_folder + "groundtruth/trimaps/100p_cube3_trimap_t_10.h5"
     dense_gt_path = volumes_folder + "groundtruth/dense_groundtruth/100p_cube3_dense_gt.h5"
 
-    test(ilp_file, files, gt_path, dense_gt_path, 1005, 2, "", 2)
+    test(ilp_file, files, gt_path, dense_gt_path, 1000, 2, [1,2], 1)
 
 
     print
