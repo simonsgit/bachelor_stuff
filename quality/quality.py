@@ -124,7 +124,9 @@ def calculate_roc_auc_score(predict, gt):
     return auc_score
 
 
-def get_segmentation(predict, pmin=0.5, minMemb=10, minSeg=10, sigMin=6, sigWeights=1, sigSmooth=0.1, cleanCloseSeeds=True, returnSeedsOnly=False):
+def get_segmentation(predict, pmin=0.5, minMemb=10, minSeg=10, sigMin=6, sigWeights=1, sigSmooth=0.1, cleanCloseSeeds=True,
+                     returnSeedsOnly=False, edgeLengths=None,nodeFeatures=None, nodeSizes=None, nodeLabels=None, nodeNumStop=None,
+                     beta=0, metric='l1', wardness=0.2, out=None):
     """ Get segmentation through watershed and agglomerative clustering
     :param predict: prediction map
     :return: segmentation map
@@ -155,15 +157,7 @@ def get_segmentation(predict, pmin=0.5, minMemb=10, minSeg=10, sigMin=6, sigWeig
     edge_weights_tag = "mean of the probabilities"
 
     #do agglomerative clustering
-    edgeLengths=None
-    nodeFeatures=None
-    nodeSizes=None
-    nodeLabels=None
-    nodeNumStop=None
-    beta=0
-    metric='l1'
-    wardness=0.2
-    out=None
+
     labels = vg.agglomerativeClustering(rag, edge_weights, edgeLengths, nodeFeatures, nodeSizes,
             nodeLabels, nodeNumStop, beta, metric, wardness, out)
 
@@ -238,7 +232,7 @@ def get_quality_values(predict, gt, dense_gt):
 
     print "#nodes in dense gt", len(np.unique(dense_gt))
     segmentation, super_pixels, wsDt_data, agglCl_data = get_segmentation(adjusted_predict)
-    # save_h5(segmentation, "/home/stamylew/delme/segmap.h5", "data", None)
+    save_h5(segmentation, "/home/stamylew/delme/segmap.h5", "data", None)
     ri_data = skl.randIndex(segmentation.flatten().astype(np.uint32), dense_gt.flatten().astype(np.uint32), True)
     voi_data = skl.variationOfInformation(segmentation.flatten().astype(np.uint32), dense_gt.flatten().astype(np.uint32), True)
     sp_ri = skl.randIndex(super_pixels.flatten().astype(np.uint32), dense_gt.flatten().astype(np.uint32), True)
@@ -247,7 +241,10 @@ def get_quality_values(predict, gt, dense_gt):
     print "super pixels values", (sp_ri, sp_voi)
     print
     print "segmentation values", (ri_data, voi_data)
-    return acc, pre, rec, auc_score, ri_data, voi_data, no_of_true_pos, no_of_false_pos, no_of_true_neg, no_of_false_neg, wsDt_data, agglCl_data
+    return acc, pre, rec, auc_score, ri_data, voi_data, no_of_true_pos, no_of_false_pos, no_of_true_neg, no_of_false_neg, \
+           wsDt_data, agglCl_data
+    # return acc, pre, rec, auc_score, no_of_true_pos, no_of_false_pos, no_of_true_neg, no_of_false_neg, \
+    #        wsDt_data, agglCl_data
 
 
 def draw_roc_curve(predict, gt):
@@ -277,6 +274,11 @@ def save_quality_values(predict_path, gt_path, dense_gt_path, outpath, slices):
     measurements = {"accuracy":acc, "precision":prec, "recall":rec, "auc score":auc_score, "rand index":ri,
                     "variation of information":voi, "true positives":tp, "false positives":fp, "true negatives":tn,
                     "false negatives":fn}
+
+    # acc, prec, rec, auc_score, tp, fp, tn, fn, wsDt_data, agglCl_data = get_quality_values(predict_data, gt_data, dense_gt_data)
+    # measurements = {"accuracy":acc, "precision":prec, "recall":rec, "auc score":auc_score,
+    #                  "true positives":tp, "false positives":fp, "true negatives":tn,
+    #                 "false negatives":fn}
 
     if not os.path.exists(outpath):
         print "Output h5 file did not exist."
@@ -350,7 +352,7 @@ def test_wsDt_agglCl_configs(predict_path, dense_gt_path, pmin=0.5, minMemb=10, 
         save_h5(new_data, outpath, key, None)
 
 
-def redo_quality(block_path, dense_gt_path, minMemb, minSeg, sigMin, sigWeights, sigSmooth):
+def redo_segmentation(block_path, dense_gt_path, minMemb, minSeg, sigMin, sigWeights, sigSmooth):
     folder_list = [f for f in os.listdir(block_path) if not os.path.isfile(os.path.join(block_path,f))]
     print "folder_list", folder_list
     for f in folder_list:
@@ -361,7 +363,7 @@ def redo_quality(block_path, dense_gt_path, minMemb, minSeg, sigMin, sigWeights,
         predict_data = read_h5(prob_file_path)
         adjusted_predict_data = adjust_predict(predict_data)
         dense_gt_data = read_h5(dense_gt_path)
-        seg, sup = get_segmentation(adjusted_predict_data, 0.5, minMemb, minSeg, sigMin, sigWeights, sigSmooth)
+        seg, sup, wsDt_data, agglCl_data = get_segmentation(adjusted_predict_data, 0.5, minMemb, minSeg, sigMin, sigWeights, sigSmooth)
         ri, voi = rand_index_variation_of_information(seg, dense_gt_data)
 
         outpath = folder_path + "redone_quality.h5"

@@ -56,6 +56,8 @@ def ac_train(ilp, labels="", loops=3, weights="", t_cache = "", outpath= ""):
     assert type(loops) is types.IntType, "Parameter loops is not an integer: %d" % loops
 
     if weights != "":
+        print len(weights)
+        print loops
         assert type(weights) is types.ListType, "Parameter weights is not a list: %d" % weights
         assert len(weights) == loops, "Parameter weights needs to have as many entries as loops."
         #modify weights
@@ -268,7 +270,7 @@ def test(ilp, files, gt_path, dense_gt_path, labels="", loops=3, weights="", rep
     save_h5(["pmin", "minMemb", "minSeg", "sigMin", "sigWeights", "sigSmooth", "cleanCloseSeeds", "returnSeedsOnly"],
             q_data_outpath, "segmentation/wsDt parameters", None)
     save_h5(["edge_weights", "edgeLengths", "nodeFeatures", "nodeSizes", "nodeLabels", "nodeNumStop", "beta", "metric",
-             "wardness", "out"], q_data_outpath, "segmentation/aggCl parameters", None)
+             "wardness", "out"], q_data_outpath, "segmentation/agglCl parameters", None)
     print
     print "quality data saved"
 
@@ -277,12 +279,12 @@ if __name__ == '__main__':
 
     ilp_folder = assign_path(hostname)[1]
     volumes_folder = assign_path(hostname)[2]
-    ilp_file = ilp_folder + "100p_cube1.ilp"
+    ilp_file = ilp_folder + "100p_cube1_hand_drawn.ilp"
     files = volumes_folder + "test_data/100p_cube3.h5/data"
     gt_path = volumes_folder + "groundtruth/trimaps/100p_cube3_trimap_t_10.h5"
     dense_gt_path = volumes_folder + "groundtruth/dense_groundtruth/100p_cube3_dense_gt.h5"
 
-    test(ilp_file, files, gt_path, dense_gt_path, 1000, 2, [1,2], 1)
+    test(ilp_file, files, gt_path, dense_gt_path, 10000, 6, "", 7)
 
 
     print
