@@ -68,6 +68,7 @@ def filter_all_labels(data, percentage):
     lol = []
 
     #get individual label data
+    print "#blocks", len(data)
     for i in np.unique(data):
         #print "label", i
         g = select_label(data, i)

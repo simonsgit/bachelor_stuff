@@ -214,7 +214,7 @@ def test(ilp, files, gt_path, dense_gt_path, labels="", loops=3, weights="", rep
     file_dir = output + "/" + filename
 
     # Overwrite folder directory
-    # file_dir = assign_path(hostname)[0] + "delme"
+    #file_dir = assign_path(hostname)[0] + "delme"
 
     # Check if file directory exists, if not make such directory
     if not os.path.exists(file_dir):

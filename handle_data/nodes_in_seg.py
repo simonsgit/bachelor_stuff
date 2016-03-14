@@ -33,10 +33,10 @@ def get_nodes_data(dense_gt_path):
     for n in range(l):
         data[n,0] = unique_tuples[n][0]
         data[n,1] = unique_tuples[n][1]
-    outpath = "/home/stamylew/volumes/groundtruth/dense_gt_data/entire_usable_data.h5"
+    #outpath = "/home/stamylew/volumes/groundtruth/dense_gt_data/entire_usable_data.h5"
     save_h5(data,outpath,"data", None)
 
 if __name__ == '__main__':
     dgt_path = "/mnt/CLAWS1/stamilev/data/ids_i_c_manualbigignore.h5"
-    #dgt_path = "/home/stamylew/volumes/groundtruth/dense_groundtruth/200p_cube3_dense_gt.h5"
+    dgt_path = "/home/stamylew/volumes/groundtruth/dense_groundtruth/100p_cube3_dense_gt.h5"
     get_nodes_data(dgt_path)

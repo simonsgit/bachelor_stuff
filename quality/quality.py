@@ -141,8 +141,7 @@ def get_segmentation(predict, pmin=0.5, minMemb=10, minSeg=10, sigMin=6, sigWeig
 
     #smooth prediction map
     probs = vf.gaussianSmoothing(predict, sigSmooth)
-
-    # save_h5(probs, "/home/stamylew/delme/probs.h5", "data")
+     # save_h5(probs, "/home/stamylew/delme/probs.h5", "data")
 
     #make grid graph
     grid_graph = vg.gridGraph(super_pixels.shape, False)
@@ -352,58 +351,78 @@ def test_wsDt_agglCl_configs(predict_path, dense_gt_path, pmin=0.5, minMemb=10, 
         save_h5(new_data, outpath, key, None)
 
 
-def redo_segmentation(block_path, dense_gt_path, minMemb, minSeg, sigMin, sigWeights, sigSmooth):
-    folder_list = [f for f in os.listdir(block_path) if not os.path.isfile(os.path.join(block_path,f))]
+def redo_segmentation(block_path, dense_gt_path, minMemb, minSeg, sigMin, sigWeights, sigSmooth, edgeLengths=None,
+                      nodeFeatures=None, nodeSizes=None, nodeLabels=None, nodeNumStop=None, beta=0, metric='l1',
+                      wardness=0.2, out=None):
+    folder_list = [f for f in os.listdir(block_path) if not os.path.isfile(os.path.join(block_path,f)) and ("figure" not in f)]
     print "folder_list", folder_list
+
     for f in folder_list:
         folder_path = os.path.join(block_path, f)
         prob_file = [h for h in os.listdir(folder_path) if "probs" in h]
         prob_file_path = os.path.join(folder_path,prob_file[0])
+        print
+        print
         print prob_file_path
         predict_data = read_h5(prob_file_path)
         adjusted_predict_data = adjust_predict(predict_data)
         dense_gt_data = read_h5(dense_gt_path)
-        seg, sup, wsDt_data, agglCl_data = get_segmentation(adjusted_predict_data, 0.5, minMemb, minSeg, sigMin, sigWeights, sigSmooth)
+        nodes_in_dgt = len(np.unique(dense_gt_data))
+        print "#nodes in dense gt", nodes_in_dgt
+        pmin = 0.5
+        seg, sup, wsDt_data, agglCl_data = get_segmentation(adjusted_predict_data, pmin, minMemb, minSeg, sigMin, sigWeights,
+                                                            sigSmooth,True,False, edgeLengths,nodeFeatures, nodeSizes,
+                                                            nodeLabels, nodeNumStop,beta, metric, wardness, out)
+        nodes_in_seg = len(np.unique(seg))
+        nodes_in_sup = len(np.unique(sup))
         ri, voi = rand_index_variation_of_information(seg, dense_gt_data)
 
-        outpath = folder_path + "redone_quality.h5"
-        key = "minMemb_" + str(minMemb)+ "_minSeg_"+ str(minSeg) +"_sigMin_" + str(sigMin) + "_sigWeights_" + str(sigWeights) + "_sigSmooth_" + str(sigSmooth)
-        data = np.zeros((1,2))
-        data[0,0] = ri
-        data[0,1] = voi
-        save_h5(data, outpath, key, None)
+        outpath = folder_path + "_redone_segmentation.h5"
+        key = "pmin_"+ str(pmin) + "_minMemb_" + str(minMemb)+ "_minSeg_"+ str(minSeg) +"_sigMin_" + str(sigMin) + "_sigWeights_" + str(sigWeights) \
+              + "_sigSmooth_" + str(sigSmooth) + "_nodeNumStop_" + str(nodeNumStop)
+        save_h5(seg, folder_path + "_segmentation.h5", key)
+        save_h5(sup, folder_path + "_super_pixels.h5", key)
+        seg_data = np.zeros((2,3))
+        seg_data[0,0] = ri
+        seg_data[0,1] = voi
+        seg_data[1,0] = nodes_in_dgt
+        seg_data[1,1] = nodes_in_sup
+        seg_data[1,2] = nodes_in_seg
+        save_h5(seg_data, outpath, key, None)
 
 if __name__ == '__main__':
-    predict_path1 = "/home/stamylew/test_folder/q_data/100p_cube1_t05/n_1_l_10000_w_none/100p_cube1_probs.h5"
-    predict1 = read_h5(predict_path1)
+    # predict_path1 = "/home/stamylew/test_folder/q_data/100p_cube1_t05/n_1_l_10000_w_none/100p_cube1_probs.h5"
+    # predict1 = read_h5(predict_path1)
     #
     # predict_path2 = "/home/stamylew/test_folder/q_data/200p_cube3/n_5_l_10000_w_none/200p_cube3_probs.h5"
     # predict2 = read_h5(predict_path2)
     #
-    gt_path1 = "/home/stamylew/volumes/groundtruth/trimaps/100p_cube1_trimap_t_10.h5"
-    gt1 = read_h5(gt_path1)
+    # gt_path1 = "/home/stamylew/volumes/groundtruth/trimaps/100p_cube1_trimap_t_10.h5"
+    # gt1 = read_h5(gt_path1)
     #
     # gt_path2 = "/home/stamylew/volumes/groundtruth/trimaps/200p_cube3_trimap_t_15.h5"
     # gt2 = read_h5(gt_path2)
     #
-    dense_gt_path1 = "/home/stamylew/volumes/groundtruth/dense_groundtruth/100p_cube1_dense_gt.h5"
-    dense_gt1 = read_h5(dense_gt_path1)
+    # dense_gt_path1 = "/home/stamylew/volumes/groundtruth/dense_groundtruth/100p_cube1_dense_gt.h5"
+    # dense_gt1 = read_h5(dense_gt_path1)
     #
     # dense_gt_path2 = "/home/stamylew/volumes/groundtruth/dense_groundtruth/200p_cube3_dense_gt.h5"
     # dense_gt2 = read_h5(dense_gt_path2)
-
-    outpath = "/home/stamylew/delme/n_1_l_10000_w_none/seg_data_test.h5"
-
-    save_quality_values(predict_path1, gt_path1, dense_gt_path1, outpath, (0,49,99))
+    #
+    # outpath = "/home/stamylew/delme/n_1_l_10000_w_none/seg_data_test.h5"
+    #
+    # save_quality_values(predict_path1, gt_path1, dense_gt_path1, outpath, (0,49,99))
     # print
     # seg, sup = get_segmentation(adjust_predict(predict1))
     # ri, voi = rand_index_variation_of_information(seg, dense_gt1)
     # print ri, voi
 
 
-    # block_path = "/home/stamylew/test_folder/q_data/100p_cube3_t05"
-    # gt_path = "/home/stamylew/volumes/groundtruth/trimaps/100p_cube3_trimap_t_10.h5"
-    # dense_gt_path = "/home/stamylew/volumes/groundtruth/dense_groundtruth/100p_cube3_dense_gt.h5"
-    # slices = (0, 49, 99)
-    # redo_quality(block_path, dense_gt_path, minMemb=10, minSeg=10, sigMin=6, sigWeights=1, sigSmooth=0.1)
-    # print "done"
+    block_path = "/home/stamylew/test_folder/q_data/100p_cube3_random"
+    gt_path = "/home/stamylew/volumes/groundtruth/trimaps/100p_cube3_trimap_t_10.h5"
+    dense_gt_path = "/home/stamylew/volumes/groundtruth/dense_groundtruth/100p_cube3_dense_gt.h5"
+    slices = (0, 49, 99)
+    redo_segmentation(block_path, dense_gt_path, minMemb=10, minSeg=10, sigMin=2, sigWeights=2, sigSmooth=0.1,edgeLengths=None,
+                      nodeFeatures=None, nodeSizes=None, nodeLabels=None, nodeNumStop=None, beta=0, metric='l1', wardness=0.2,
+                      out=None)
+    print "done"

@@ -21,7 +21,8 @@ def sort_and_extract_quality_data(path, fixed_param, x_dim, measurements):
     :return:
     """
     # Find all relevant data folders
-    data_folders = [f for f in os.listdir(path) if (isdir(path)) and (fixed_param in f)]
+    data_folders = [f for f in os.listdir(path) if (isdir(path)) and (fixed_param in f) and ("h5" not in f)]
+    print data_folders
 
     # Create labels for plot
     if "n_" in fixed_param:
@@ -71,7 +72,7 @@ def sort_and_extract_quality_data(path, fixed_param, x_dim, measurements):
     return x_dim, data, fixed_value,
 
 
-def create_plot(input_path, fixed_param, x_dim, measurements, outpath = "/home/stamylew/test_folder/q_data/100p_cube2/diagrams/"):
+def create_plot(input_path, fixed_param, x_dim, measurements, save_fig = False, outpath = "/home/stamylew/test_folder/q_data/100p_cube2/diagrams/"):
     """
     :param input:
     :param outpath:
@@ -89,7 +90,6 @@ def create_plot(input_path, fixed_param, x_dim, measurements, outpath = "/home/s
     x_max = []
     for data in data_list:
         x_points = np.arange(len(data[1]))
-        position = data_list.index(data)
         x_min.append(min(data[1]))
         x_max.append(max(data[1]))
         xticks = data[1]
@@ -101,17 +101,25 @@ def create_plot(input_path, fixed_param, x_dim, measurements, outpath = "/home/s
     elif "#labels" == x_dim:
         xrange = [min(x_min)-1000, max(x_max)+1000]
 
-    diag_name = outpath + fixed_value.split(" ")[0] + "_" + fixed_value.split(" ")[-1] + ".png"
+    folder_path = input_path + "/figures/"
+    if not os.path.exists(folder_path):
+        os.mkdir(folder_path)
+    diag_name = folder_path + measurements[0] + "_over_"+ x_dim + "_with_"+fixed_value.split(" ")[0] + "_" + fixed_value.split(" ")[-1] + ".png"
 
+    y_dim = 'score'
+    if "true" in measurements[0] or "false" in measurements[0]:
+        y_dim = '#pixels'
     plt.legend(loc = 'best')
     plt.title(title)
     plt.xlim(xrange)
     plt.xlabel(x_dim, fontsize=14, color='black')
-    plt.ylabel('score', fontsize=14, color='black')
+    plt.ylabel(y_dim, fontsize=14, color='black')
+    if save_fig:
+        plt.savefig(diag_name)
     plt.show()
 
 
-def compare_plots(inpaths, fixed_params, measurements):
+def compare_plots(inpaths, fixed_params, x_dim, measurements):
     """
     :param measurement:
     :param plot_data_sets:
@@ -122,7 +130,7 @@ def compare_plots(inpaths, fixed_params, measurements):
     for inpath in inpaths:
         data_set_name = inpath.split("/")[-1]
         for fixed_param in fixed_params:
-            x_dim, data_list, fixed = sort_and_extract_quality_data(inpath, fixed_param, measurements)
+            x_dim, data_list, fixed = sort_and_extract_quality_data(inpath, fixed_param, x_dim, measurements)
             plot_data_sets.append((data_set_name, fixed_param, x_dim, data_list, fixed))
 
     x_min = []
@@ -145,12 +153,15 @@ def compare_plots(inpaths, fixed_params, measurements):
             else:
                 label = data[0]
                 title = "Comparison between measurements "
+            x_points = np.arange(len(data[1]))
             x_min.append(min(data[1]))
             x_max.append(max(data[1]))
-            plt.errorbar(data[1], data[2], data[3], None, label= label)
+            xticks = data[1]
+            plt.errorbar(x_points, data[2], data[3], None, label= label)
+            plt.xticks(x_points, xticks)
 
-        if "#loops" == x_dim:
-            xrange = [min(x_min)-0.5, max(x_max)+0.5]
+        if "#loops" == x_dim or "weights" == x_dim:
+            xrange = [x_points[0]-0.5, x_points[-1]+0.5]
         elif "#labels" == x_dim:
             xrange = [min(x_min)-1000, max(x_max)+1000]
 
@@ -160,6 +171,7 @@ def compare_plots(inpaths, fixed_params, measurements):
     plt.legend(loc = 'best')
     plt.xlim(xrange)
     plt.show()
+    plt.close()
 
 
 if __name__ == '__main__':
@@ -169,19 +181,25 @@ if __name__ == '__main__':
     # print sort_and_extract_qdata(path, "l_1000_")
 
     fixed_param1 = "l_10000_"
-    fixed_param2 = "n_3_"
+    fixed_param2 = "l_20000_"
+    fixed_param3 = "n_3_"
 
     measurement1 = "rand index"
     measurement2 = "variation of information"
     measurement3 = "precision"
     measurement4 = "recall"
+    measurement5 = "true positives"
+    measurement6 = "false positives"
+    measurement7 = "true negatives"
+    measurement8 = "false negatives"
     #create_plot(path1, "n_3_")
     #x_dim, data, fixed = sort_and_extract_quality_data(path1, "l_20000_", ["precision", "recall"])
 
-    create_plot(path3, "l_10000_", "weights", ["precision", "recall"])
-    # create_plot(path1, fixed_param1, [measurement1])
+    # create_plot(path3, "l_10000_", "weights", ["precision", "recall"])
+    # create_plot(path1, fixed_param1, "#loops", [measurement8])
+    create_plot(path1, fixed_param2, "#loops", [measurement4], False)
 
-    # compare_plots([path1, path2], [fixed_param1], [measurement4])
+    # compare_plots([path1, path2], [fixed_param1], "#loops",[measurement3])
     # print data
 
 

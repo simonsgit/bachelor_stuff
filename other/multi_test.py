@@ -22,11 +22,11 @@ def multi_loops(nol, ilp, files, gt, dense_gt, labels="", weights="", repeats=1,
     if outpath == "":
         outpath = test_folder_path + "/q_data"
 
-    for n in range(6,nol+1):
+    for n in range(11,nol+1):
         test(ilp, files, gt, dense_gt, labels, n, weights, repeats, outpath, t_cache, p_cache)
 
 
-def multi_labels(label_values,ilp, files, gt, loops=3, weights="", repeats=1, outpath= "",
+def multi_labels(label_values,ilp, files, gt, dense_gt, loops=3, weights="", repeats=1, outpath= "",
          t_cache = "", p_cache = ""):
     hostname = socket.gethostname()
     test_folder_path = assign_path(hostname)[5]
@@ -44,7 +44,7 @@ def multi_labels(label_values,ilp, files, gt, loops=3, weights="", repeats=1, ou
         outpath = test_folder_path + "/q_data"
 
     for n in label_values:
-        test(ilp, files, gt, n, loops, weights, repeats, outpath, t_cache, p_cache)
+        test(ilp, files, gt, dense_gt, n, loops, weights, repeats, outpath, t_cache, p_cache)
 
 
 def multi_weights(weightings, ilp, files, gt, dense_gt, loops, labels, repeats=1, outpath ="",
@@ -75,10 +75,10 @@ if __name__ == '__main__':
 
     ilp_folder = assign_path(hostname)[1]
     volumes_folder = assign_path(hostname)[2]
-    ilp_file = ilp_folder + "100p_cube1_hand_drawn.ilp"
+    ilp_file = ilp_folder + "100p_cube1.ilp"
     files = volumes_folder + "test_data/100p_cube3.h5/data"
     gt = volumes_folder + "groundtruth/trimaps/100p_cube3_trimap_t_10.h5"
     dense_gt = volumes_folder + "groundtruth/dense_groundtruth/100p_cube3_dense_gt.h5"
-    multi_loops(10, ilp_file, files, gt, dense_gt, 10000, "", 10)
-    # multi_labels([100, 500, 1000, 5000, 10000, 20000],ilp_file, files, gt, 3, "", 10)
-    #multi_weights(([1,1,1],), ilp_file, files, gt, dense_gt, 3, 10000, 10)
+    multi_loops(12, ilp_file, files, gt, dense_gt, 20000, "", 10)
+    #multi_labels([100, 500, 1000, 5000, 20000, 30000, 40000, 50000, 600000],ilp_file, files, gt, dense_gt, 3, "", 10)
+    # multi_weights(([1,1,1,1],[2,1,1,1], [3,2,1,1], [4,3,2,1]), ilp_file, files, gt, dense_gt, 4, 10000, 10)
