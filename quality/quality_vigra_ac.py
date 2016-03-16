@@ -125,8 +125,8 @@ def calculate_roc_auc_score(predict, gt):
 
 
 def get_segmentation(predict, pmin=0.5, minMemb=10, minSeg=10, sigMin=6, sigWeights=1, sigSmooth=0.1, cleanCloseSeeds=True,
-                     returnSeedsOnly=False, edgeLengths=None,nodeFeatures=None, nodeSizes=None, nodeLabels=None,
-                     nodeNumStop=None, beta=0, metric='l1', wardness=0.2, out=None):
+                     returnSeedsOnly=False, edgeLengths=None,nodeFeatures=None, nodeSizes=None, nodeLabels=None, nodeNumStop=None,
+                     beta=0, metric='l1', wardness=0.2, out=None):
     """ Get segmentation through watershed and agglomerative clustering
     :param predict: prediction map
     :return: segmentation map
@@ -156,14 +156,49 @@ def get_segmentation(predict, pmin=0.5, minMemb=10, minSeg=10, sigMin=6, sigWeig
 
     #do agglomerative clustering
 
-    labels = vg.agglomerativeClustering(rag, edge_weights, edgeLengths, nodeFeatures, nodeSizes,
-            nodeLabels, nodeNumStop, beta, metric, wardness, out)
+    def agglomerativeClustering_beststop_th05(graph, edgeWeights=None, edgeStoppers=None,
+                                          edgeLengths=None, nodeFeatures=None, nodeSizes=None,
+                                          nodeLabels=None, beta=0, metric=None,
+                                          wardness=1.0, sameLabelMultiplier=1.0,  out=None):
+
+
+        vg.ac(graph, edgeWeights=edgeWeights, edgeStoppers=edgeStoppers,
+                                       edgeLengths=edgeLengths, nodeFeatures=nodeFeatures,
+                                       nodeSizes=nodeSizes, nodeLabels=nodeLabels, nodeNumStop=0,
+                                       beta=beta, wardness=wardness, sameLabelMultiplier=sameLabelMultiplier, out=out)
+
+        f = open('/tmp/ac_bestNodenumstop.txt', 'r')
+        nodeNumStop = f.readline()
+        f.close()
+        print "best nodeNumStop:", nodeNumStop
+
+        # in experiments if n of the groundtruth is n the file contains n-1. probably in the hc.hxx the
+        #  number is written to file too late. does this make any sense??
+
+        nodeNumStop = int(nodeNumStop)
+        nodeNumStop += 1
+
+        ac_res, nodelabel_out_1 = vg.ac(graph, edgeWeights=edgeWeights, edgeStoppers=edgeStoppers,
+                                            edgeLengths=edgeLengths, nodeFeatures=nodeFeatures,
+                                            nodeSizes=nodeSizes, nodeLabels=nodeLabels, nodeNumStop=nodeNumStop,
+                                            beta=beta, wardness=wardness, sameLabelMultiplier=sameLabelMultiplier,
+                                            out=out)
+
+        return ac_res, nodeNumStop, nodelabel_out_1
+
+    labels, _, _ = agglomerativeClustering_beststop_th05(rag, edgeWeights=edge_weights, edgeStoppers=edge_weights,
+                                          edgeLengths=edgeLengths, nodeFeatures=nodeFeatures, nodeSizes=nodeSizes,
+                                          nodeLabels=nodeLabels, beta=beta, metric=metric,
+                                          wardness=0.1, sameLabelMultiplier=1.0,  out=out)
+
+
+    # labels = vg.agglomerativeClustering(rag, edge_weights, edgeLengths, nodeFeatures, nodeSizes,
+    #         nodeLabels, nodeNumStop, beta, metric, wardness, out)
 
     #segmentation data
     wsDt_data = np.zeros((8,1))
     wsDt_data[:,0] = (pmin, minMemb, minSeg, sigMin, sigWeights, sigSmooth, cleanCloseSeeds, returnSeedsOnly)
-    agglCl_data = edge_weights_tag, str(edgeLengths), str(nodeFeatures), str(nodeSizes), str(nodeLabels), str(nodeNumStop), \
-                  str(beta), metric, str(wardness), str(out)
+    agglCl_data = edge_weights_tag, str(edgeLengths), str(nodeFeatures), str(nodeSizes), str(nodeLabels), str(nodeNumStop), str(beta), metric, str(wardness), str(out)
 
     #project labels back to data
     segmentation = rag.projectLabelsToBaseGraph(labels)
@@ -218,8 +253,8 @@ def rand_index_variation_of_information(segmentation, dense_gt):
     return ri, voi
 
 
-def get_quality_values(predict, gt, dense_gt, minMemb, minSeg, sigMin, sigWeights, sigSmooth,edgeLengths,nodeFeatures,
-                       nodeSizes, nodeLabels, nodeNumStop, beta, metric, wardness,out):
+def get_quality_values(predict, gt, dense_gt, minMemb, minSeg, sigMin, sigWeights, sigSmooth,edgeLengths,nodeFeatures,nodeSizes,
+                       nodeLabels, nodeNumStop, beta, metric, wardness,out):
     """
     """
     adjusted_predict = adjust_predict(predict)
@@ -263,7 +298,7 @@ def draw_roc_curve(predict, gt):
 
 
 def save_quality_values(predict_path, gt_path, dense_gt_path, outpath, slices, minMemb=10, minSeg=10, sigMin=6, sigWeights=1,
-                        sigSmooth=0.1,edgeLengths=None, nodeFeatures=None, nodeSizes=None, nodeLabels=None, nodeNumStop="dgt",
+                        sigSmooth=0.1,edgeLengths=None, nodeFeatures=None, nodeSizes=None, nodeLabels=None, nodeNumStop=None,
                         beta=0, metric='l1', wardness=0.2, out=None):
     """
     """
@@ -273,8 +308,7 @@ def save_quality_values(predict_path, gt_path, dense_gt_path, outpath, slices, m
     gt_data = read_h5(gt_path)
     dense_gt_data = read_h5(dense_gt_path)
     nodes_in_dgt = np.unique(dense_gt_data)
-    if nodeNumStop == "dgt":
-        nodeNumStop = len(nodes_in_dgt)
+    nodeNumStop = nodes_in_dgt
     print "nodeNumStop", nodeNumStop
     #all_quality_data = get_quality_values(predict_data, gt_data, dense_gt_data)
 
@@ -440,8 +474,8 @@ def redo_quality2(block_path, dense_gt_path, minMemb, minSeg, sigMin, sigWeights
         if not os.path.exists(new_folder_path):
             os.mkdir(new_folder_path)
 
-        key = "pmin_"+ str(pmin) + "_minMemb_" + str(minMemb)+ "_minSeg_"+ str(minSeg) +"_sigMin_" + str(sigMin) + \
-              "_sigWeights_" + str(sigWeights) + "_sigSmooth_" + str(sigSmooth) + "_nodeNumStop_" + str(nodeNumStop)
+        key = "pmin_"+ str(pmin) + "_minMemb_" + str(minMemb)+ "_minSeg_"+ str(minSeg) +"_sigMin_" + str(sigMin) + "_sigWeights_" + str(sigWeights) \
+              + "_sigSmooth_" + str(sigSmooth) + "_nodeNumStop_" + str(nodeNumStop)
         save_h5(seg, new_folder_path + "/segmentation.h5", key)
         save_h5(sup, new_folder_path + "/super_pixels.h5", key)
         seg_data = np.zeros((2,3))
@@ -480,13 +514,11 @@ if __name__ == '__main__':
     # print ri, voi
 
 
-    block_path = "/home/stamylew/test_folder/compare_loops/100p_cube3_l_20000_w_none"
+    block_path = "/home/stamylew/100p_cube3_l_20000_w_none"
     gt_path = "/home/stamylew/volumes/groundtruth/trimaps/100p_cube3_trimap_t_10.h5"
     dense_gt_path = "/home/stamylew/volumes/groundtruth/dense_groundtruth/100p_cube3_dense_gt.h5"
-    dgt = len(np.unique(read_h5(dense_gt_path)))
-    print dgt
     slices = (0, 49, 99)
     redo_quality2(block_path, dense_gt_path, minMemb=10, minSeg=10, sigMin=4, sigWeights=1, sigSmooth=0.1,edgeLengths=None,
-                      nodeFeatures=None, nodeSizes=None, nodeLabels=None, nodeNumStop="dgt", beta=0, metric='l1', wardness=0.2,
+                      nodeFeatures=None, nodeSizes=None, nodeLabels=None, nodeNumStop=None, beta=0, metric='l1', wardness=0.2,
                       out=None)
     print "done"

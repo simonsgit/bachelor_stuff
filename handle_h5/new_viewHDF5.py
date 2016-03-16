@@ -6,7 +6,7 @@ from volumina.api import Viewer
 import sys
 from PyQt4.QtGui import QApplication
 from python_functions.handle_h5.handle_h5 import read_h5
-from python_functions.quality.quality import adjust_predict
+from python_functions.quality.quality import adjust_predict, binarize_predict
 
 def view_HDF5(inpaths):
 
@@ -19,8 +19,8 @@ def view_HDF5(inpaths):
             data = read_h5(inpath)
             file = inpath.split("/")[-1]
             name = file.split(".")[0]
-            if "probs" in inpath:
-                data = adjust_predict(data)
+            if "prob" in inpath:
+                data = binarize_predict(data)
                 file = inpath.split("/")[-2] + inpath.split("/")[-1]
                 name = file.split(".")[0]
             print "type", type(data)
@@ -38,10 +38,10 @@ def view_HDF5(inpaths):
     app.exec_()
 
 if __name__ == '__main__':
-    data0 = "/home/stamylew/test_folder/q_data/100p_cube3_random/n_1_l_20000_w_none_segmentation.h5"
-    data1 = "/home/stamylew/test_folder/q_data/100p_cube3_random/n_1_l_20000_w_none_super_pixels.h5"
-    data2 = "/home/stamylew/test_folder/q_data/100p_cube3_random/n_2_l_20000_w_none_segmentation.h5"
-    data3 = "/home/stamylew/test_folder/q_data/100p_cube3_random/n_2_l_20000_w_none_super_pixels.h5"
+    data0 = "/home/stamylew/test_folder/compare_loops/100p_cube3_l_20000_w_none/n_1_l_20000_w_none_segmentation.h5"
+    data1 = "/home/stamylew/test_folder/compare_loops/100p_cube3_l_20000_w_none/n_1_l_20000_w_none_super_pixels.h5"
+    data2 = "/home/stamylew/test_folder/compare_loops/100p_cube3_l_20000_w_none/n_9_l_20000_w_none_segmentation.h5"
+    data3 = "/home/stamylew/test_folder/compare_loops/100p_cube3_l_20000_w_none/n_9_l_20000_w_none_super_pixels.h5"
     data4 = "/home/stamylew/volumes/groundtruth/dense_groundtruth/100p_cube3_dense_gt.h5"
 
     data5 = "/home/stamylew/volumes/groundtruth/trimaps/200p_cube1_trimap_t_05.h5"
@@ -50,11 +50,11 @@ if __name__ == '__main__':
     data8 = "/home/stamylew/volumes/test_data/200p_cube1.h5"
     data9 = "/home/stamylew/volumes/groundtruth/dense_groundtruth/200p_cube1_dense_gt.h5"
 
-    data10 = "/home/stamylew/test_folder/q_data/100p_cube3_random/n_2_l_20000_w_none/100p_cube3_probs.h5"
-    data11 = "/home/stamylew/test_folder/q_data/100p_cube3_random/n_4_l_20000_w_none/100p_cube3_probs.h5"
-    data12 = "/home/stamylew/test_folder/q_data/100p_cube3_random/n_6_l_20000_w_none/100p_cube3_probs.h5"
-    data13 = "/home/stamylew/volumes/groundtruth/dense_groundtruth/100p_cube3_dense_gt.h5"
-    data14 = "/home/stamylew/volumes/groundtruth/trimaps/100p_cube3_trimap_t_10.h5"
+    data10 = "/home/stamylew/test_folder/compare_loops/100p_cube2_l_10000_w_none/n_1_l_10000_w_none/prob_files/prob_10.h5"
+    data11 = "/home/stamylew/test_folder/compare_loops/100p_cube2_l_10000_w_none/n_2_l_10000_w_none/prob_files/prob_7.h5"
+    data11 = "/home/stamylew/test_folder/compare_loops/100p_cube2_l_10000_w_none/n_4_l_10000_w_none/prob_files/prob_5.h5"
+    data13 = "/home/stamylew/volumes/groundtruth/dense_groundtruth/100p_cube2_dense_gt.h5"
+    data14 = "/home/stamylew/volumes/groundtruth/trimaps/100p_cube2_trimap_t_10.h5"
 
 
     dense_gt = "/mnt/CLAWS1/stamilev/data/ids_i_c_manualbigignore.h5"
@@ -62,5 +62,11 @@ if __name__ == '__main__':
     entire_data = (raw, dense_gt)
     inpaths1 = (data0, data1, data2, data3, data4)
     inpaths2 = (data5, data6, data7, data8, data9)
-    inpaths3 = (data14, data13, data10, data11, data12)
-    view_HDF5(inpaths1)
+    inpaths3 = (data11, data10, data14, data13)
+    view_HDF5(inpaths3)
+
+    # from sklearn.metrics import roc_auc_score, roc_curve, accuracy_score, precision_score, recall_score
+    # import skneuro.learning._learning as skl
+    # a= np.array([1,1,1,0,0,1,0,1,0,0], dtype=np.uint32)
+    # b= np.array([1,1,1,0,0,1,0,0,1,0], dtype=np.uint32)
+    # print precision_score(a,b), skl.variationOfInformation(a,b)

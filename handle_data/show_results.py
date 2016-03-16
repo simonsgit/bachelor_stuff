@@ -22,6 +22,8 @@ def sort_and_extract_quality_data(path, fixed_param, x_dim, measurements):
     """
     # Find all relevant data folders
     data_folders = [f for f in os.listdir(path) if (isdir(path)) and (fixed_param in f) and ("h5" not in f)]
+
+    assert len(data_folders) > 0, "No folders fit the criteria"
     print data_folders
 
     # Create labels for plot
@@ -72,7 +74,7 @@ def sort_and_extract_quality_data(path, fixed_param, x_dim, measurements):
     return x_dim, data, fixed_value,
 
 
-def create_plot(input_path, fixed_param, x_dim, measurements, save_fig = False, outpath = "/home/stamylew/test_folder/q_data/100p_cube2/diagrams/"):
+def create_plot(input_path, fixed_param, x_dim, measurements, save_fig = False):
     """
     :param input:
     :param outpath:
@@ -90,27 +92,31 @@ def create_plot(input_path, fixed_param, x_dim, measurements, save_fig = False, 
     x_max = []
     for data in data_list:
         x_points = np.arange(len(data[1]))
+        print "x_points", x_points
         x_min.append(min(data[1]))
         x_max.append(max(data[1]))
         xticks = data[1]
+        print "xticks", xticks
         plt.errorbar(x_points, data[2], data[3], None, label=data[0])
         plt.xticks(x_points, xticks)
 
     if "#loops" == x_dim or "weights" == x_dim:
         xrange = [x_points[0]-0.5, x_points[-1]+0.5]
     elif "#labels" == x_dim:
-        xrange = [min(x_min)-1000, max(x_max)+1000]
+        xrange = [x_points[0]-0.5, x_points[-1]+0.5]
 
     folder_path = input_path + "/figures/"
     if not os.path.exists(folder_path):
         os.mkdir(folder_path)
-    diag_name = folder_path + measurements[0] + "_over_"+ x_dim + "_with_"+fixed_value.split(" ")[0] + "_" + fixed_value.split(" ")[-1] + ".png"
+    diag_name = folder_path + measurements[0] + "_over_"+ x_dim + "_with_"+fixed_value.split(" ")[0] + "_" + \
+                fixed_value.split(" ")[-1] + ".png"
 
     y_dim = 'score'
     if "true" in measurements[0] or "false" in measurements[0]:
         y_dim = '#pixels'
     plt.legend(loc = 'best')
     plt.title(title)
+    print "xrange", xrange
     plt.xlim(xrange)
     plt.xlabel(x_dim, fontsize=14, color='black')
     plt.ylabel(y_dim, fontsize=14, color='black')
@@ -119,7 +125,7 @@ def create_plot(input_path, fixed_param, x_dim, measurements, save_fig = False, 
     plt.show()
 
 
-def compare_plots(inpaths, fixed_params, x_dim, measurements):
+def compare_plots(inpaths, fixed_params, x_dim, measurements, savefig=False):
     """
     :param measurement:
     :param plot_data_sets:
@@ -129,9 +135,13 @@ def compare_plots(inpaths, fixed_params, x_dim, measurements):
     plot_data_sets = []
     for inpath in inpaths:
         data_set_name = inpath.split("/")[-1]
+        print data_set_name
+        block_name = data_set_name.split("_")[0] + " " + data_set_name.split("_")[1]
+        difference = data_set_name.split("_")[2] + "=" + data_set_name.split("_")[3]
+        individual_label = block_name + " with " + difference
         for fixed_param in fixed_params:
             x_dim, data_list, fixed = sort_and_extract_quality_data(inpath, fixed_param, x_dim, measurements)
-            plot_data_sets.append((data_set_name, fixed_param, x_dim, data_list, fixed))
+            plot_data_sets.append(((individual_label, difference), fixed_param, x_dim, data_list, fixed))
 
     x_min = []
     x_max = []
@@ -145,14 +155,23 @@ def compare_plots(inpaths, fixed_params, x_dim, measurements):
 
             #name label and title
             if len(inpaths) > 1:
-                label = data[0] + " " + data_set_name
-                title = "Comparison between blocks"
+                label = data_set_name[0]
+                comparison = ""
+                if "t" in data_set_name[1]:
+                    comparison = " w.r.t. ignore label thickness t"
+                if "l" in data_set_name[1]:
+                    comparison = " w.r.t. number of labels"
+                if "w" in data_set_name[1]:
+                    comparison = " w.r.t. weighting"
+                title = "Comparison of "+ data[0] + comparison
+
             elif len(fixed_params) > 1:
                 label = data[0] + " " + fixed_param.split("_")[0] + "=" + fixed_param.split("_")[1]
-                title = "Comparison between fixed parameters"
-            else:
+                title = "Comparison of " + data[0] + " between fixed parameters"
+            elif len(measurements) > 1:
                 label = data[0]
-                title = "Comparison between measurements "
+                title = "Comparison of " + data[0] + " between measurements"
+                comparison = str(measurements)
             x_points = np.arange(len(data[1]))
             x_min.append(min(data[1]))
             x_max.append(max(data[1]))
@@ -165,20 +184,37 @@ def compare_plots(inpaths, fixed_params, x_dim, measurements):
         elif "#labels" == x_dim:
             xrange = [min(x_min)-1000, max(x_max)+1000]
 
+    folder_path = inpaths[0] + "/figures/"
+    print folder_path
+    if not os.path.exists(folder_path):
+        os.mkdir(folder_path)
+    fig_name = folder_path + "Comparison_of_"+data[0] + comparison +".png"
+    print fig_name
+
+
     plt.xlabel(x_dim, fontsize=14, color='black')
     plt.ylabel('score', fontsize=14, color='black')
     plt.title(title)
     plt.legend(loc = 'best')
     plt.xlim(xrange)
+    if savefig:
+        plt.savefig(fig_name)
     plt.show()
     plt.close()
 
 
 if __name__ == '__main__':
-    path1 = "/home/stamylew/test_folder/q_data/100p_cube3_random"
-    path2 = "/home/stamylew/test_folder/q_data/100p_cube3_hand_drawn"
-    path3 = "/home/stamylew/test_folder/q_data/100p_cube3"
+    path1 = "/home/stamylew/test_folder/compare_ignore_label/100p_cube3_t_5_l_10000_w_none"
+    path2 = "/home/stamylew/test_folder/compare_ignore_label/100p_cube3_t_10_l_10000_w_none"
+    path3 = "/home/stamylew/test_folder/compare_data_size/100p_cube3_l_20000_w_none"
+    path4 = "/home/stamylew/test_folder/compare_data_size/200p_cube3_l_20000_w_none"
+    path5 = "/home/stamylew/test_folder/compare_labels/100p_cube3_n_3_w_none"
+    path6 = "/home/stamylew/test_folder/compare_weights/100p_cube2_n_4_l_10000"
+    path7 = "/home/stamylew/test_folder/compare_loops/100p_cube2_l_10000_w_none"
     # print sort_and_extract_qdata(path, "l_1000_")
+
+    compare_ignore_label_thickness = [path1, path2]
+    compare_data_size = [path3, path4]
 
     fixed_param1 = "l_10000_"
     fixed_param2 = "l_20000_"
@@ -195,11 +231,16 @@ if __name__ == '__main__':
     #create_plot(path1, "n_3_")
     #x_dim, data, fixed = sort_and_extract_quality_data(path1, "l_20000_", ["precision", "recall"])
 
-    # create_plot(path3, "l_10000_", "weights", ["precision", "recall"])
-    # create_plot(path1, fixed_param1, "#loops", [measurement8])
-    create_plot(path1, fixed_param2, "#loops", [measurement4], False)
+    #create loops plot
+    create_plot(path7, fixed_param1, "#loops", [measurement8,], True)
 
-    # compare_plots([path1, path2], [fixed_param1], "#loops",[measurement3])
+    #create labels plot
+    # create_plot(path5, fixed_param3, "#labels", [measurement2], False)
+
+    #create weights plot
+    # create_plot(path6, fixed_param1, "weights", [measurement1], True)
+
+    # compare_plots([path7,], [fixed_param1], "#loops", [measurement3, measurement4],False)
     # print data
 
 
