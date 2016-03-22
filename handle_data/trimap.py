@@ -32,24 +32,24 @@ def create_membrane(data):
                 #x direction
                 if data[i,j,k] != data[i+1,j,k] and data[i,j,k] != 1:
                     data[i,j,k] = data[i+1,j,k] = 1
-                if data[i,data.shape[1]-1,k] != data[i,data.shape[1]-2,k] and data[i, data.shape[1]-1,k] !=1:
-                    data[i,data.shape[1]-1,k] = 1
-                if data[i,j,data.shape[1]-1] != data[i,j,data.shape[1]-2] and data[i,j,data.shape[1]-1] !=1:
-                    data[i,j,data.shape[1]-1] = 1
+                # if data[i,data.shape[1]-1,k] != data[i,data.shape[1]-2,k] and data[i, data.shape[1]-1,k] !=1:
+                #     data[i,data.shape[1]-1,k] = 1
+                # if data[i,j,data.shape[1]-1] != data[i,j,data.shape[1]-2] and data[i,j,data.shape[1]-1] !=1:
+                #     data[i,j,data.shape[1]-1] = 1
                 #y direction
                 if data[i,j,k] != data[i,j+1,k] and data[i,j,k] != 1:
                     data[i,j,k] = data[i,j+1,k] = 1
-                if data[data.shape[1]-1,j,k] != data[data.shape[1]-2,j,k] and data[data.shape[1]-1,j,k] !=1:
-                    data[i,data.shape[1]-1,k] = 1
-                if data[i,j,data.shape[1]-1] != data[i,j,data.shape[1]-2] and data[i,j,data.shape[1]-1] !=1:
-                    data[i,j,data.shape[1]-1] = 1
+                # if data[data.shape[1]-1,j,k] != data[data.shape[1]-2,j,k] and data[data.shape[1]-1,j,k] !=1:
+                #     data[i,data.shape[1]-1,k] = 1
+                # if data[i,j,data.shape[1]-1] != data[i,j,data.shape[1]-2] and data[i,j,data.shape[1]-1] !=1:
+                #     data[i,j,data.shape[1]-1] = 1
                 #z direction
                 if data[i,j,k] != data[i,j,k+1] and data[i,j,k] != 1:
                     data[i,j,k] = data[i,j,k+1] = 1
-                if data[i,data.shape[1]-1,k] != data[i,data.shape[1]-2,k] and data[i, data.shape[1]-1,k] !=1:
-                    data[i,data.shape[1]-1,k] = 1
-                if data[data.shape[1]-1,j,k] != data[data.shape[1]-2,j,k] and data[data.shape[1]-1,j,k] !=1:
-                    data[data.shape[1]-1,j,k] = 1
+                # if data[i,data.shape[1]-1,k] != data[i,data.shape[1]-2,k] and data[i, data.shape[1]-1,k] !=1:
+                #     data[i,data.shape[1]-1,k] = 1
+                # if data[data.shape[1]-1,j,k] != data[data.shape[1]-2,j,k] and data[data.shape[1]-1,j,k] !=1:
+                #     data[data.shape[1]-1,j,k] = 1
     return data
 
 
@@ -65,6 +65,8 @@ def label_neurons(data, neuron_label):
 def filter_membrane(dense_gt_data):
     prepared_data = prepare_data(dense_gt_data)
     memb = create_membrane(prepared_data)
+    plt.imshow(memb[1])
+    plt.show()
     memb_data = label_neurons(memb, 0)
     return memb_data, dense_gt_data
 
@@ -99,10 +101,10 @@ def create_trimap(dense_gt_path, thickness):
     filename_with_ending = dense_gt_path.split("/")[-1]
     filename = filename_with_ending.split("_")[0] + "_" + filename_with_ending.split("_")[1]
     thickness_string = str(thickness)
-    memb_outpath = "/home/stamylew/volumes/groundtruth/memb/" + filename + "_memb.h5"
+    memb_outpath = "/mnt/CLAWS1/stamilev/volumes/groundtruth/memb/" + filename + "_memb.h5"
     save_h5(memb_data, memb_outpath, "data")
     thickness_tag = thickness_string.split(".")[0] + thickness_string.split(".")[1]
-    trimap_outpath = "/home/stamylew/volumes/groundtruth/trimaps/" + filename + "_trimap_t_" + thickness_tag +".h5"
+    trimap_outpath = "/mnt/CLAWS1/stamilev/volumes/groundtruth/trimaps/" + filename + "_trimap_t_" + thickness_tag +".h5"
     save_h5(trimap, trimap_outpath, "data")
 
     return trimap
@@ -114,11 +116,11 @@ def create_trimap(dense_gt_path, thickness):
     
 if __name__ == '__main__':
     
-    raw_data_path = "/home/stamylew/volumes/test_data/100p_cube2.h5"
-    dense_gt_path = "/home/stamylew/volumes/groundtruth/dense_groundtruth/100p_cube2_dense_gt.h5"
+    raw_data_path = "/home/stamylew/volumes/test_data/100p_cube5.h5"
+    dense_gt_path = "/mnt/CLAWS1/stamilev/volumes/groundtruth/dense_groundtruth/500p_cube2_dense_gt.h5"
     dgt = read_h5(dense_gt_path)
     print "dgt", np.unique(dgt)
-    trimap = create_trimap(dense_gt_path, 1.0)
+    trimap = create_trimap(dense_gt_path, 0.5)
     #print "trimap", trimap[0:5]
 
     print "done"

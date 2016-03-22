@@ -68,7 +68,7 @@ def filter_all_labels(data, percentage):
     lol = []
 
     #get individual label data
-    print "#blocks", len(data)
+    print "unique data", np.unique(data)
     for i in np.unique(data):
         #print "label", i
         g = select_label(data, i)
@@ -94,8 +94,18 @@ def get_number_of_labels(data):
     number_of_labels = np.sum(labeled_pixels)
 
     return number_of_labels
-    
-    
+
+def get_number_of_unique_labels(data):
+    """Returns the amount of non-zero entries
+    :param data: data array
+    :return: Amount of labeled pixels in data
+    """
+    for i in np.unique(data):
+        labeled_pixels = data == i
+        no = np.sum(labeled_pixels)
+        print i, no
+
+
 def limit_label(data, limit, nolp=""):
     """Limits amount of labeled pixels in data array to given limit
     :param data:    data array
@@ -126,14 +136,19 @@ def limit_label(data, limit, nolp=""):
 
 
 if __name__ == '__main__':
-    a = "/home/stamylew/volumes/groundtruth/trimaps/500p_cube1_trimap_t_05.h5"
-    b = read_h5(a)
-    print get_number_of_labels(b)
+    a = read_h5("/mnt/CLAWS1/stamilev/ilastik_projects/labels/100p_cube2_hand_drawn_labels.h5")
+    b = read_h5("/mnt/CLAWS1/stamilev/ilastik_projects/labels/100p_cube2_generated_labels.h5")
+    # b = read_h5("/mnt/CLAWS1/stamilev/ilastik_projects/labels/100p_cube2_hand_drawn_labels.h5")
+    # print get_number_of_labels(b)
     #print "working file:", np.unique(b)
     # c = filter_all_labels(b, 0.5)
     # print get_number_of_labels(c)
-    d = limit_label(b, 10000)
-    print get_number_of_labels(d)
+    # d = limit_label(b, 10000)
+    print "cube1"
+    get_number_of_unique_labels(a)
+    print
+    print "cube2"
+    get_number_of_unique_labels(b)
 
     
 #    print "real number" 

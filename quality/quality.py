@@ -169,7 +169,7 @@ def get_segmentation(predict, pmin=0.5, minMemb=10, minSeg=10, sigMin=6, sigWeig
     segmentation = rag.projectLabelsToBaseGraph(labels)
     print "#nodes in segmentation", len(np.unique(segmentation))
     # save_h5(segmentation, "/home/stamylew/delme/segmap.h5", "data", None)
-
+    print "seg", np.unique(segmentation)
     return segmentation, super_pixels, wsDt_data, agglCl_data
 
 
@@ -213,7 +213,7 @@ def true_and_false_neg(predict, gt, pos_label=1):
     return no_of_neg_pos, no_of_false_neg
 
 def rand_index_variation_of_information(segmentation, dense_gt):
-    ri =  skl.randIndex(segmentation.flatten().astype(np.uint32), dense_gt.flatten().astype(np.uint32), True)
+    ri =  skl.randIndex(segmentation.flatten().astype(np.uint32), dense_gt.flatten().astype(np.uint32),True)
     voi = skl.variationOfInformation(segmentation.flatten().astype(np.uint32), dense_gt.flatten().astype(np.uint32), True)
     return ri, voi
 
@@ -324,135 +324,74 @@ def save_quality_values(predict_path, gt_path, dense_gt_path, outpath, slices, m
     plt.plot(fpr, tpr)
     plt.savefig(im_outpath + "roc_curve_test.png")
 
-def test_wsDt_agglCl_configs(predict_path, dense_gt_path, pmin=0.5, minMemb=10, minSeg=10, sigMin=2, sigWeights=2, sigSmooth=0.1):
-    """
-    :param predict_path:
-    :param dense_gt_path:
-    :param pmin:
-    :param minMemb:
-    :param minSeg:
-    :param sigMin:
-    :param sigWeights:
-    :param sigSmooth:
-    :return:
-    """
-
-    #get rand index and variation of information
-    predict_data = read_h5(predict_path)
-    adjusted_predict_data = adjust_predict(predict_data)
-    dense_gt_data = read_h5(dense_gt_path)
-    seg, sup = get_segmentation(adjusted_predict_data,pmin,minMemb,minSeg,sigMin,sigWeights,sigSmooth)
-    ri, voi = rand_index_variation_of_information(seg, dense_gt_data)
-    print "ri, voi", ri, voi
-
-    config = predict_path.split("/")[-2]
-    filename = config + "_" + predict_path.split("/")[-1]
-    outpath_folder = "/home/stamylew/test_folder/q_data/wsDt_agglCl_tests/"
-    outpath = outpath_folder + filename
-
-    key = "sigMin_" + str(sigMin) + "_sigWeights_" + str(sigWeights) + "_sigSmooth_" + str(sigSmooth)
-
-    if not os.path.exists(outpath):
-        print "Output h5 file did not exist."
-        data = np.zeros((1,2))
-        data[0,0] = ri
-        data[0,1] = voi
-        save_h5(data, outpath, key, None)
-    else:
-        old_data = read_h5(outpath, key)
-        data = np.zeros((1,2))
-        data[0,0] = ri
-        data[0,1] = voi
-        new_data = np.vstack((old_data, data))
-        save_h5(new_data, outpath, key, None)
-
-def redo_quality(block_path, dense_gt_path, minMemb, minSeg, sigMin, sigWeights, sigSmooth, edgeLengths=None,
-                      nodeFeatures=None, nodeSizes=None, nodeLabels=None, nodeNumStop=None, beta=0, metric='l1',
-                      wardness=0.2, out=None):
-
-    #find all relevant folders in block path
-    folder_list = [f for f in os.listdir(block_path) if not os.path.isfile(os.path.join(block_path,f))
-                   and ("figure" not in f) and "redone" not in f]
-
-    #create folder for redone quality
-    outpath = block_path + "/redone_quality"
-    if not os.path.exists(outpath):
-        os.mkdir(outpath)
-
-    dense_gt_data = read_h5(dense_gt_path)
-    nodes_in_dgt = len(np.unique(dense_gt_data))
-
-    #use prob file in every folder to create new quality in data in corresponding new folder
-    for f in folder_list:
 
 
-        #find prob file paths
-        folder_path = os.path.join(block_path, f)
-        prob_file = [h for h in os.listdir(folder_path) if "probs" in h]
-        prob_file_path = os.path.join(folder_path,prob_file[0])
+def make_seg_map(prob_map_path, dense_gt_path, key):
+    prob_map = read_h5(prob_map_path)
+    dense_gt = read_h5(dense_gt_path)
+    nodes_in_dgt = len(np.unique(dense_gt))
+    print "nodes in dgt", nodes_in_dgt
+    seed_map = wsDtSegmentation(prob_map, pmin=0.5, minMembraneSize=10, minSegmentSize=0, sigmaMinima=6, sigmaWeights=1, cleanCloseSeeds=True,
+                                returnSeedsOnly=True)
+    seg_map, sup_map, wsDt_data, agglCl_data = get_segmentation(prob_map, pmin=0.5, minMemb=10, minSeg=0, sigMin=6, sigWeights=1, sigSmooth=0.1,
+                                                                     cleanCloseSeeds=True, returnSeedsOnly=False, edgeLengths=None, nodeFeatures=None,
+                                                                     nodeSizes=None, nodeLabels=None, nodeNumStop=nodes_in_dgt, beta=0, metric='l1',
+                                                                     wardness=1, out=None)
+    print "seeds", len(np.unique(seed_map))
+    print "seg", len(np.unique(seg_map))
 
-        #create new folders for new quality data
-        config_name = prob_file_path.split("/")[-2]
-        config_path = outpath +"/"+ config_name
-        if not os.path.exists(config_path):
-            os.mkdir(config_path)
-        quality_data_path = config_path + "/" + config_name+".h5"
+    #make folder for seeds
+    seed_folder = prob_map_path.split("prob")[0] + "seeds/"
+    if not os.path.exists(seed_folder):
+        os.mkdir(seed_folder)
+    seed_map_outpath = seed_folder + prob_map_path.split("/")[-1]
 
-        #save new quality data in new folders
-        save_quality_values(prob_file_path,gt_path, dense_gt_path, quality_data_path,slices,minMemb, minSeg, sigMin,
-                            sigWeights, sigSmooth, edgeLengths, nodeFeatures, nodeSizes, nodeLabels, nodeNumStop, beta,
-                            metric, wardness, out)
+    #make folder for super pixels
+    sup_folder = prob_map_path.split("prob")[0] + "sup_maps/"
+    if not os.path.exists(sup_folder):
+        os.mkdir(sup_folder)
+    sup_map_outpath = sup_folder + prob_map_path.split("/")[-1]
+
+    #make folder for segmentations
+    seg_folder = prob_map_path.split("prob")[0] + "seg_maps/"
+    if not os.path.exists(seg_folder):
+        os.mkdir(seg_folder)
+    seg_map_outpath =  seg_folder + prob_map_path.split("/")[-1]
+
+    #make folder for segmentation data
+    data_folder = prob_map_path.split("prob")[0] + "seg_data/"
+    if not os.path.exists(data_folder):
+        os.mkdir(data_folder)
+    data_outpath = data_folder + prob_map_path.split("/")[-1]
+
+    #get segmentation data
+    ri, voi = rand_index_variation_of_information(seg_map, dense_gt)
+    print "ri, voi", ri , voi
+
+    ri_data = np.array((ri))
+    voi_data = np.array((voi))
+    ri_voi_data = np.array((ri, voi))
+
+    #save seeds, superpixels and segmentations
+    # save_h5(ri_voi_data, data_outpath, key)
+    # save_h5(ri_data, data_outpath, "rand index", None)
+    # save_h5(voi_data, data_outpath, "variation of information", None)
+    # save_h5(seed_map, seed_map_outpath, "data", None)
+    # save_h5(sup_map,sup_map_outpath, "data", None)
+    save_h5(seg_map,seg_map_outpath, "data", None)
+
+    # save_h5(super_pixels, outpath, "superpixels")
 
 
-def redo_quality2(block_path, dense_gt_path, minMemb, minSeg, sigMin, sigWeights, sigSmooth, edgeLengths=None,
-                      nodeFeatures=None, nodeSizes=None, nodeLabels=None, nodeNumStop=None, beta=0, metric='l1',
-                      wardness=0.2, out=None):
-    folder_list = [f for f in os.listdir(block_path) if not os.path.isfile(os.path.join(block_path,f))
-                   and ("figure" not in f) and "redone" not in f]
-    print "folder_list", folder_list
-    outpath = block_path + "/redone_quality"
-    if not os.path.exists(outpath):
-        os.mkdir(outpath)
-
-    dense_gt_data = read_h5(dense_gt_path)
-    nodes_in_dgt = len(np.unique(dense_gt_data))
-    for f in folder_list:
-        folder_path = os.path.join(block_path, f)
-        prob_file = [h for h in os.listdir(folder_path) if "probs" in h]
-        prob_file_path = os.path.join(folder_path,prob_file[0])
-        print
-        print
-        print prob_file_path
-        predict_data = read_h5(prob_file_path)
-        adjusted_predict_data = adjust_predict(predict_data)
-        print "#nodes in dense gt", nodes_in_dgt
-        pmin = 0.5
-
-        seg, sup, wsDt_data, agglCl_data = get_segmentation(adjusted_predict_data, pmin, minMemb, minSeg, sigMin, sigWeights,
-                                                            sigSmooth,True,False, edgeLengths,nodeFeatures, nodeSizes,
-                                                            nodeLabels, nodeNumStop,beta, metric, wardness, out)
-        nodes_in_seg = len(np.unique(seg))
-        nodes_in_sup = len(np.unique(sup))
-
-        ri, voi = rand_index_variation_of_information(seg, dense_gt_data)
-
-        new_folder_path = outpath + "/" + f
-        if not os.path.exists(new_folder_path):
-            os.mkdir(new_folder_path)
-
-        key = "pmin_"+ str(pmin) + "_minMemb_" + str(minMemb)+ "_minSeg_"+ str(minSeg) +"_sigMin_" + str(sigMin) + \
-              "_sigWeights_" + str(sigWeights) + "_sigSmooth_" + str(sigSmooth) + "_nodeNumStop_" + str(nodeNumStop)
-        save_h5(seg, new_folder_path + "/segmentation.h5", key)
-        save_h5(sup, new_folder_path + "/super_pixels.h5", key)
-        seg_data = np.zeros((2,3))
-        seg_data[0,0] = ri
-        seg_data[0,1] = voi
-        seg_data[1,0] = nodes_in_dgt
-        seg_data[1,1] = nodes_in_sup
-        seg_data[1,2] = nodes_in_seg
-        save_h5(seg_data, new_folder_path + "/seg_data", key, None)
 
 if __name__ == '__main__':
+    prob_map_path1= "/mnt/CLAWS1/stamilev/test_folder/compare_loops/100p_cube2_l_10000_trained_with_cube1/n_1_l_10000_w_none/prob_files/prob_6.h5"
+    prob_map_path2= "/mnt/CLAWS1/stamilev/test_folder/compare_loops/100p_cube2_l_10000_trained_with_cube1/n_2_l_10000_w_none/prob_files/prob_6.h5"
+    dense_gt_path= "/mnt/CLAWS1/stamilev/volumes/groundtruth/dense_groundtruth/100p_cube2_dense_gt.h5"
+    key = "wardness_1_nns_none"
+    # prob_map_paths = [p for p in ]
+    make_seg_map(prob_map_path1, dense_gt_path, key)
+    make_seg_map(prob_map_path2, dense_gt_path, key)
     # predict_path1 = "/home/stamylew/test_folder/q_data/100p_cube1_t05/n_1_l_10000_w_none/100p_cube1_probs.h5"
     # predict1 = read_h5(predict_path1)
     #
@@ -479,14 +418,14 @@ if __name__ == '__main__':
     # ri, voi = rand_index_variation_of_information(seg, dense_gt1)
     # print ri, voi
 
-
-    block_path = "/home/stamylew/test_folder/compare_loops/100p_cube3_l_20000_w_none"
-    gt_path = "/home/stamylew/volumes/groundtruth/trimaps/100p_cube3_trimap_t_10.h5"
-    dense_gt_path = "/home/stamylew/volumes/groundtruth/dense_groundtruth/100p_cube3_dense_gt.h5"
-    dgt = len(np.unique(read_h5(dense_gt_path)))
-    print dgt
-    slices = (0, 49, 99)
-    redo_quality2(block_path, dense_gt_path, minMemb=10, minSeg=10, sigMin=4, sigWeights=1, sigSmooth=0.1,edgeLengths=None,
-                      nodeFeatures=None, nodeSizes=None, nodeLabels=None, nodeNumStop="dgt", beta=0, metric='l1', wardness=0.2,
-                      out=None)
+    #
+    # block_path = "/home/stamylew/test_folder/compare_loops/100p_cube3_l_20000_w_none"
+    # gt_path = "/home/stamylew/volumes/groundtruth/trimaps/100p_cube3_trimap_t_10.h5"
+    # dense_gt_path = "/home/stamylew/volumes/groundtruth/dense_groundtruth/100p_cube3_dense_gt.h5"
+    # dgt = len(np.unique(read_h5(dense_gt_path)))
+    # print dgt
+    # slices = (0, 49, 99)
+    # redo_quality2(block_path, dense_gt_path, minMemb=10, minSeg=10, sigMin=4, sigWeights=1, sigSmooth=0.1,edgeLengths=None,
+    #                   nodeFeatures=None, nodeSizes=None, nodeLabels=None, nodeNumStop="dgt", beta=0, metric='l1', wardness=0.2,
+    #                   out=None)
     print "done"

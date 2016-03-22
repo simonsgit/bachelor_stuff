@@ -67,10 +67,10 @@ def ac_train(ilp, labels="", loops=3, weights="", t_cache = "", outpath= ""):
     ilastik_path = assign_path(hostname)[3]
 
     #reduce number of labeled pixels if wanted
-    if labels != "":
-        print
-        print "reducing labels to " + str(labels)
-        ilp = reduce_labels_in_ilp(ilp, labels)
+    # if labels != "":
+    #     print
+    #     print "reducing labels to " + str(labels)
+    #     ilp = reduce_labels_in_ilp(ilp, labels)
 
     #create ilp outpath
     if outpath != "":
@@ -205,15 +205,25 @@ def test(ilp, files, gt_path, dense_gt_path, labels="", loops=3, weights="", rep
 
     # Make folder for quality data
 
+    if "manual" in ilp:
+        filename += "_manual"
     if "hand_drawn" in ilp:
         filename += "_hand_drawn"
     if "less_feat" in ilp:
         filename += "_less_feat"
 
+    #change labels for every test
+    # if labels != "":
+    #     print
+    #     print "reducing labels to " + str(labels)
+    #     ilp = reduce_labels_in_ilp(ilp, labels)
+
     file_dir = output + "/" + filename
+    if not os.path.exists(file_dir):
+        os.mkdir(file_dir)
 
     # Overwrite folder directory
-    # file_dir = assign_path(hostname)[0] + "delme"
+    # file_dir = "/mnt/CLAWS1/stamilev/delme"
 
     # Check if file directory exists, if not make such directory
     if not os.path.exists(file_dir):
@@ -225,7 +235,7 @@ def test(ilp, files, gt_path, dense_gt_path, labels="", loops=3, weights="", rep
 
     q_outpath = file_dir + "/n_" + str(loops) + "_l_" + str(label_tag) + "_w_" + weight_tag
     prob_folder = q_outpath + "/prob_files"
-    q_data_outpath = q_outpath + "/n_" + str(loops) + "_l_" + str(labels) + "_w_" + weight_tag + ".h5"
+    q_data_outpath = q_outpath + "/n_" + str(loops) + "_l_" + str(label_tag) + "_w_" + weight_tag + ".h5"
 
 
     # Check if test directory exists, if not make such directory
@@ -288,12 +298,12 @@ if __name__ == '__main__':
 
     ilp_folder = assign_path(hostname)[1]
     volumes_folder = assign_path(hostname)[2]
-    ilp_file = ilp_folder + "100p_cube1.ilp"
-    files = volumes_folder + "test_data/100p_cube3.h5/data"
-    gt_path = volumes_folder + "groundtruth/trimaps/100p_cube3_trimap_t_10.h5"
-    dense_gt_path = volumes_folder + "groundtruth/dense_groundtruth/100p_cube3_dense_gt.h5"
+    ilp_file = ilp_folder + "100p_cube4_t_05.ilp"
+    files = volumes_folder + "test_data/100p_cube5.h5/data"
+    gt_path = volumes_folder + "groundtruth/trimaps/100p_cube5_trimap_t_10.h5"
+    dense_gt_path = volumes_folder + "groundtruth/dense_groundtruth/100p_cube5_dense_gt.h5"
 
-    test(ilp_file, files, gt_path, dense_gt_path, 60000, 3, "", 10)
+    test(ilp_file, files, gt_path, dense_gt_path, 10000, 6, "", 7)
 
 
     print

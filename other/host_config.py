@@ -4,31 +4,33 @@ from os.path import expanduser
 
 def assign_path(hostname):
     if hostname == "birdofprey":
-        home =              "/home/stamylew/"
-        ilp_folder =        home + "ilastik_projects/"
-        volumes_folder =    home + "volumes/"
-        ilastik_path =      home + "software/ilastik-1.1.6-Linux/run_ilastik.sh"
-        autocontext_path =  home + "src/autocontext/autocontext.py"
-        test_folder =       home + "test_folder"
+        home1 =             "/home/stamylew/"
+        home2 =             "/mnt/CLAWS1/stamilev/"
+        ilp_folder =        home2 + "ilastik_projects/"
+        volumes_folder =    home2 + "volumes/"
+        ilastik_path =      home1 + "software/ilastik-1.1.6-Linux/run_ilastik.sh"
+        autocontext_path =  home1 + "src/autocontext/autocontext.py"
+        test_folder =       home2 + "test_folder"
 
     elif hostname == "fatchicken":
-        home =              "/home/stamyalew/"
-        ilp_folder =        home + "ilastik_projects/"
-        volumes_folder =    home + "volumes/"
-        ilastik_path =      home + "software/ilastik-1.1.8.post1-Linux/run_ilastik.sh"
-        autocontext_path =  home + "src/autocontext/autocontext.py"
-        test_folder =       home + "test_folder"
+        home1 =              "/home/stamyalew/"
+        ilp_folder =        home1 + "ilastik_projects/"
+        volumes_folder =    home1 + "volumes/"
+        ilastik_path =      home1 + "software/ilastik-1.1.8.post1-Linux/run_ilastik.sh"
+        autocontext_path =  home1 + "src/autocontext/autocontext.py"
+        test_folder =       home1 + "test_folder"
 
     elif hostname == "sirherny":
-        home =              "/mnt/homes/stamyalew/"
-        ilp_folder =        "/mnt/data/simon/ilastik_projects/"
-        volumes_folder =    "/mnt/data/simon/volumes/"
-        ilastik_path =      home + "software/ilastik-1.1.8.post1-Linux/run_ilastik.sh"
-        autocontext_path =  home + "software/autocontext/autocontext.py"
-        test_folder =       home + "test_folder"
+        home1 =             "/mnt/homes/stamyalew/"
+        home2 =             "/mnt/data/"
+        ilp_folder =        home2 + "simon/ilastik_projects/"
+        volumes_folder =    home2 + "simon/volumes/"
+        ilastik_path =      home1 + "software/ilastik-1.1.8.post1-Linux/run_ilastik.sh"
+        autocontext_path =  home1 + "software/autocontext/autocontext.py"
+        test_folder =       home1 + "test_folder"
     else:
         raise Exception("No valid hostname given.")
-    return home, ilp_folder, volumes_folder, ilastik_path, autocontext_path, test_folder
+    return home1, ilp_folder, volumes_folder, ilastik_path, autocontext_path, test_folder
 
 class host:
     def __init__(self, hostname):

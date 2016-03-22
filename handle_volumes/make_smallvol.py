@@ -59,10 +59,10 @@ def cut_block(inpath, outpath, x1=225, x2=725, y1=200, y2=700, z1=200, z2=700):
 
     
 if __name__ == '__main__':
-    inpath = "/mnt/CLAWS1/stamilev/data/ids_i_c_manualbigignore.h5"
-    # inpath = "/mnt/CLAWS1/stamilev/data/d.h5"
-    outpath = "/home/stamylew/volumes/groundtruth/dense_groundtruth/200p_cube4_dense_gt.h5"
-    # outpath = "/home/stamylew/volumes/test_data/200p_cube4.h5"
+    inpath = "/mnt/CLAWS1/stamilev/volumes/test_data/usable_data.h5"
+    # inpath = "/mnt/CLAWS1/stamilev/volumes/groundtruth/dense_groundtruth/usable_data_dense_gt.h5"
+    outpath = "/mnt/CLAWS1/stamilev/volumes/test_data/200p_cube5.h5"
+    # outpath = "/mnt/CLAWS1/stamilev/volumes/groundtruth/dense_groundtruth/200p_cube5_dense_gt.h5"
     print outpath
-    cut_block(inpath, outpath, 525, 725, 500, 700, 500, 700)
+    cut_block(inpath, outpath, 250, 450, 50, 250, 50, 250)
     print "done"

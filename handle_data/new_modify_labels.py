@@ -35,7 +35,6 @@ def reduce_labels_in_ilp(ilp_path, labels):
 
     #extract blocks and block coordinates from ilp file
     blocks, block_slices = manipulate_me.get_labels(0)
-
     #get number of labeled pixels in the indiviual blocks and appending them to a list
     nolb = []
     for block in blocks:
@@ -44,7 +43,7 @@ def reduce_labels_in_ilp(ilp_path, labels):
 
     #sum amount of labeled pixels of the individual blocks
     noal = float(np.sum(nolb))
-
+    print "noal", noal
     #limit amount of labeled pixels to the given limit
     new_all_blocks = limit_label(blocks,labels, noal)
 
@@ -145,6 +144,17 @@ if __name__ == '__main__':
     # ilp_path = "/home/stamylew/ilastik_projects/500p_cube2_less_feats.ilp"
     # mod_ilp = reduce_labels_in_ilp(ilp_path, 1000)
     # print "Amount of labeled pixels:", check_ilp_labels(mod_ilp)
+    ilp = "/mnt/CLAWS1/stamilev/ilastik_projects/100p_cube2_manual_less_feat.ilp"
+    ilp_copy = create_copy(ilp)
+    manipulate_me = ILP(ilp_copy, "/home/stamylew/delme")
 
-    ilp_path = "/home/stamylew/ilastik_projects/200p_cube1.ilp"
-    concentrated_data = concentrated_labels(ilp_path, 20000)
+    #extract blocks and block coordinates from ilp file
+    blocks, block_slices = manipulate_me.get_labels(0)
+    #get number of labeled pixels in the indiviual blocks and appending them to a list
+    nolb = []
+    for block in blocks:
+        nolib = get_number_of_labels(block)
+        nolb.append(nolib)
+    noal = float(np.sum(nolb))
+    print "noal", noal
+

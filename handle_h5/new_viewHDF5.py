@@ -14,18 +14,29 @@ def view_HDF5(inpaths):
     v = Viewer()
 
     for inpath in inpaths:
+        if "n_1_" in inpath:
+            prefix = "n_1_"
+        elif "n_2_" in inpath:
+            prefix = "n_2_"
+        else:
+            prefix = ""
         if "h5" in inpath:
             #data = vigra.readHDF5(inpath, "data")
+            print
+            print "inpath", inpath
             data = read_h5(inpath)
             file = inpath.split("/")[-1]
-            name = file.split(".")[0]
-            if "prob" in inpath:
+            name = prefix + file.split(".")[0]
+            if "prob_files" in inpath or "seeds" in inpath:
                 data = binarize_predict(data)
-                file = inpath.split("/")[-2] + inpath.split("/")[-1]
-                name = file.split(".")[0]
+                file = inpath.split("/")[-2] + "_" + inpath.split("/")[-1]
+                name = prefix + file.split(".")[0]
             print "type", type(data)
-            v.addGrayscaleLayer(data, name=name)
-            v.addRandomColorsLayer(255*data, name=name+"_color")
+            if "test_data" in inpath or "prob_files" in inpath or "seeds" in inpath:
+                v.addGrayscaleLayer(data, name=name)
+            if "trimaps" in inpath or "dense" in inpath or "sup_maps" in inpath or "seg_maps" in inpath:
+                v.addRandomColorsLayer(255*data, name=name+"_color")
+
         if "png" in inpath:
             img = vigra.impex.readImage(inpath)
             img = np.asarray(img)
@@ -33,37 +44,61 @@ def view_HDF5(inpaths):
             name = file.split(".")[0]
             print "type",type(img)
             v.addGrayscaleLayer(img, name=name)
+
             #v.addRandomColorsLayer(255*img, name=name+"color")
     v.showMaximized()
     app.exec_()
 
 if __name__ == '__main__':
-    data0 = "/home/stamylew/test_folder/compare_loops/100p_cube3_l_20000_w_none/n_1_l_20000_w_none_segmentation.h5"
-    data1 = "/home/stamylew/test_folder/compare_loops/100p_cube3_l_20000_w_none/n_1_l_20000_w_none_super_pixels.h5"
-    data2 = "/home/stamylew/test_folder/compare_loops/100p_cube3_l_20000_w_none/n_9_l_20000_w_none_segmentation.h5"
-    data3 = "/home/stamylew/test_folder/compare_loops/100p_cube3_l_20000_w_none/n_9_l_20000_w_none_super_pixels.h5"
-    data4 = "/home/stamylew/volumes/groundtruth/dense_groundtruth/100p_cube3_dense_gt.h5"
+    #raw data
+    raw_cube1 = "/mnt/CLAWS1/stamilev/volumes/test_data/100p_cube1.h5"
+    raw_cube2 = "/mnt/CLAWS1/stamilev/volumes/test_data/100p_cube2.h5"
 
-    data5 = "/home/stamylew/volumes/groundtruth/trimaps/200p_cube1_trimap_t_05.h5"
-    data6 = "/home/stamylew/volumes/groundtruth/trimaps/200p_cube1_trimap_t_10.h5"
-    data7 = "/home/stamylew/volumes/groundtruth/trimaps/200p_cube1_trimap_t_15.h5"
-    data8 = "/home/stamylew/volumes/test_data/200p_cube1.h5"
-    data9 = "/home/stamylew/volumes/groundtruth/dense_groundtruth/200p_cube1_dense_gt.h5"
+    #dense gt
+    dgt_cube1 = "/mnt/CLAWS1/stamilev/volumes/groundtruth/dense_groundtruth/100p_cube1_dense_gt.h5"
+    dgt_cube2 = "/mnt/CLAWS1/stamilev/volumes/groundtruth/dense_groundtruth/100p_cube2_dense_gt.h5"
 
-    data10 = "/home/stamylew/test_folder/compare_loops/100p_cube2_l_10000_w_none/n_1_l_10000_w_none/prob_files/prob_10.h5"
-    data11 = "/home/stamylew/test_folder/compare_loops/100p_cube2_l_10000_w_none/n_2_l_10000_w_none/prob_files/prob_7.h5"
-    data11 = "/home/stamylew/test_folder/compare_loops/100p_cube2_l_10000_w_none/n_4_l_10000_w_none/prob_files/prob_5.h5"
-    data13 = "/home/stamylew/volumes/groundtruth/dense_groundtruth/100p_cube2_dense_gt.h5"
-    data14 = "/home/stamylew/volumes/groundtruth/trimaps/100p_cube2_trimap_t_10.h5"
+    #trimaps
+    tri_cube1 = "/mnt/CLAWS1/stamilev/volumes/groundtruth/trimaps/100p_cube1_trimap_t_10.h5"
+    tri_cube2 = "/mnt/CLAWS1/stamilev/volumes/groundtruth/trimaps/100p_cube2_trimap_t_10.h5"
 
+    #probability maps for loop comparison
+    central_cube1_path = "/mnt/CLAWS1/stamilev/test_folder/compare_loops/100p_cube1_l_10000_trained_with_cube2/"
+    central_cube2_path = "/mnt/CLAWS1/stamilev/test_folder/compare_loops/100p_cube2_l_10000_trained_with_cube1/"
+    # prob_n_1_cube1 = central_path + "100p_cube1_l_10000_trained_with_cube2/n_1_l_10000_w_none/prob_files/prob_10.h5"
+    # prob_n_2_cube1 = central_path + "100p_cube1_l_10000_trained_with_cube2/n_2_l_10000_w_none/prob_files/prob_10.h5"
+    prob_n_1_cube2 = central_cube2_path + "n_1_l_10000_w_none/prob_files/prob_6.h5"
+    prob_n_2_cube2 = central_cube2_path + "n_2_l_10000_w_none/prob_files/prob_6.h5"
 
-    dense_gt = "/mnt/CLAWS1/stamilev/data/ids_i_c_manualbigignore.h5"
-    raw = "/mnt/CLAWS1/stamilev/data/d.h5"
-    entire_data = (raw, dense_gt)
-    inpaths1 = (data0, data1, data2, data3, data4)
-    inpaths2 = (data5, data6, data7, data8, data9)
-    inpaths3 = (data11, data10, data14, data13)
-    view_HDF5(inpaths3)
+    #seed maps
+    seeds_n_1_cube2 = central_cube2_path + "n_1_l_10000_w_none/seeds/prob_6.h5"
+    seeds_n_2_cube2 = central_cube2_path + "n_2_l_10000_w_none/seeds/prob_6.h5"
+
+    #segmentations map
+    # seg_n_1_cube1 = central_path + "100p_cube1_l_10000_trained_with_cube2/n_1_l_10000_w_none/prob_files/prob_10_segmented.h5"
+    # seg_n_2_cube1 = central_path + "100p_cube1_l_10000_trained_with_cube2/n_1_l_10000_w_none/prob_files/prob_10_segmented.h5"
+    seg_n_1_cube2 = central_cube2_path + "n_1_l_10000_w_none/seg_maps/prob_6.h5"
+    seg_n_2_cube2 = central_cube2_path + "n_2_l_10000_w_none/seg_maps/prob_6.h5"
+
+    #super pixels
+    sup_n_1_cube2 = central_cube2_path + "n_1_l_10000_w_none/sup_maps/prob_6.h5"
+    sup_n_2_cube2 = central_cube2_path + "n_2_l_10000_w_none/sup_maps/prob_6.h5"
+
+    # raw_usable_data = "/home/stamylew/volumes/test_data/usable_data.h5"
+    # dgt_usable_data = "/home/stamylew/volumes/groundtruth/dense_groundtruth/usable_data_dense_gt.h5"
+    # big_cube2 = "/mnt/CLAWS1/stamilev/volumes/test_data/500p_cube2.h5"
+    # big_dgt2  = "/mnt/CLAWS1/stamilev/volumes/groundtruth/dense_groundtruth/500p_cube2_dense_gt.h5"
+    # raw_cubes = (raw_cube1, raw_cube2)
+    # dgt_cubes = (dgt_cube1, dgt_cube2)
+    # tri_cubes = (tri_cube1, tri_cube2)
+
+    # cube1 = (raw_cube1, dgt_cube1, tri_cube1, prob_n_2_cube1, prob_n_1_cube1)
+    cube2 = (raw_cube2, dgt_cube2, tri_cube2, seg_n_2_cube2, sup_n_2_cube2,  prob_n_2_cube2, seeds_n_2_cube2,
+             seg_n_1_cube2, sup_n_1_cube2, prob_n_1_cube2, seeds_n_1_cube2)
+
+    view_HDF5(cube2)
+    # view_HDF5((raw_usable_data, dgt_usable_data))
+    # view_HDF5((big_cube2, big_dgt2))
 
     # from sklearn.metrics import roc_auc_score, roc_curve, accuracy_score, precision_score, recall_score
     # import skneuro.learning._learning as skl
