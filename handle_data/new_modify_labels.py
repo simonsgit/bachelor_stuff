@@ -144,12 +144,13 @@ if __name__ == '__main__':
     # ilp_path = "/home/stamylew/ilastik_projects/500p_cube2_less_feats.ilp"
     # mod_ilp = reduce_labels_in_ilp(ilp_path, 1000)
     # print "Amount of labeled pixels:", check_ilp_labels(mod_ilp)
-    ilp = "/mnt/CLAWS1/stamilev/ilastik_projects/100p_cube2_manual_less_feat.ilp"
-    ilp_copy = create_copy(ilp)
-    manipulate_me = ILP(ilp_copy, "/home/stamylew/delme")
+    ilp = "/mnt/CLAWS1/stamilev/ilastik_projects/100p_cubes/100p_cube2_clever_labeling.ilp"
+    # ilp_copy = create_copy(ilp)
+    manipulate_me = ILP(ilp, "/home/stamylew/delme")
 
     #extract blocks and block coordinates from ilp file
     blocks, block_slices = manipulate_me.get_labels(0)
+
     #get number of labeled pixels in the indiviual blocks and appending them to a list
     nolb = []
     for block in blocks:

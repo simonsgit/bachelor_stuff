@@ -139,7 +139,8 @@ def compare_plots(inpaths, fixed_params, x_dim, measurements, savefig=False):
         print data_set_name
         block_name = data_set_name.split("_")[0] + " " + data_set_name.split("_")[1]
         difference = data_set_name.split("_")[2] + "=" + data_set_name.split("_")[3]
-        individual_label = block_name + " with " + difference
+        individual_label = block_name\
+                           #+ " with " + difference
         for fixed_param in fixed_params:
             x_dim, data_list, fixed = sort_and_extract_quality_data(inpath, fixed_param, x_dim, measurements)
             plot_data_sets.append(((individual_label, difference), fixed_param, x_dim, data_list, fixed))
@@ -165,9 +166,11 @@ def compare_plots(inpaths, fixed_params, x_dim, measurements, savefig=False):
                 if "w" in data_set_name[1]:
                     comparison = " w.r.t. weighting"
                 title = "Comparison of "+ data[0] + comparison
+                title = "Comparison of rand index"
 
             elif len(fixed_params) > 1:
-                label = data[0] + " " + fixed_param.split("_")[0] + "=" + fixed_param.split("_")[1]
+                label = data[0]\
+                        #+ " " + fixed_param.split("_")[0] + "=" + fixed_param.split("_")[1]
                 title = "Comparison of " + data[0] + " between fixed parameters"
             elif len(measurements) > 1:
                 label = data[0]
@@ -189,7 +192,7 @@ def compare_plots(inpaths, fixed_params, x_dim, measurements, savefig=False):
     print folder_path
     if not os.path.exists(folder_path):
         os.mkdir(folder_path)
-    fig_name = folder_path + "Comparison_of_"+data[0] + comparison +".png"
+    fig_name = folder_path + "Comparison_of_"+data[0] +".png"
     print fig_name
 
 
@@ -205,14 +208,14 @@ def compare_plots(inpaths, fixed_params, x_dim, measurements, savefig=False):
 
 
 if __name__ == '__main__':
-    path1 = "/home/stamylew/test_folder/compare_ignore_label/100p_cube3_t_5_l_10000_w_none"
-    path2 = "/home/stamylew/test_folder/compare_ignore_label/100p_cube3_t_10_l_10000_w_none"
+    path1 = "/mnt/CLAWS1/stamilev/test_folder/compare_loops/100p_cube1/100p_cube1_l_10000_random"
+    path2 = "/mnt/CLAWS1/stamilev/test_folder/compare_loops/100p_cube2/100p_cube2_l_10000_random"
     path3 = "/home/stamylew/test_folder/compare_data_size/100p_cube3_l_20000_w_none"
     path4 = "/home/stamylew/test_folder/compare_data_size/200p_cube3_l_20000_w_none"
-    path5 = "/mnt/CLAWS1/stamilev/test_folder/compare_labels/100p_cube3_n_3_trained_with_cube1"
-    path6 = "/mnt/CLAWS1/stamilev/test_folder/compare_weights/100p_cube4_n_4_trained_with_cube_5"
+    path5 = "/mnt/CLAWS1/stamilev/test_folder/compare_labels/100p_cube2/manual_less_feat"
+    path6 = "/mnt/CLAWS1/stamilev/test_folder/q_data/100p_cube2"
     path7 = "/home/stamylew/test_folder/compare_loops/100p_cube1_l_10000_w_none"
-    path8 = "/mnt/CLAWS1/stamilev/test_folder/q_data/100p_cube1_manual"
+    path8 = "/mnt/CLAWS1/stamilev/test_folder/q_data/100p_cube2_clever"
     # print sort_and_extract_qdata(path, "l_1000_")
 
     compare_ignore_label_thickness = [path1, path2]
@@ -220,8 +223,8 @@ if __name__ == '__main__':
 
     fixed_param1 = "l_10000_"
     fixed_param2 = "l_20000_"
-    fixed_param4 = "l_all_"
     fixed_param3 = "n_3_"
+    fixed_param4 = "l_all_"
 
     measurement1 = "rand index"
     measurement2 = "variation of information"
@@ -238,16 +241,16 @@ if __name__ == '__main__':
     #create loops plot
     for measurement in measurements:
         create_plot(path8, fixed_param4, "#loops",  [measurement], True)
-    # create_plot(path8, fixed_param1, "#loops",  [measurement1], False)
 
     #create labels plot
     # for measurement in measurements:
     #     create_plot(path5, fixed_param3, "#labels", [measurement], True)
 
     #create weights plot
-    # create_plot(path6, fixed_param1, "weights", [measurement4], True)
+    # for measurement in measurements:
+    #     create_plot(path6, fixed_param3, "weights", [measurement], True)
 
-    # compare_plots([path7,], [fixed_param1], "#loops", [measurement3, measurement4],False)
+    # compare_plots([path1, path2], [fixed_param1], "#loops", [measurement2], True)
     # print data
 
 

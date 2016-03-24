@@ -326,17 +326,17 @@ def save_quality_values(predict_path, gt_path, dense_gt_path, outpath, slices, m
 
 
 
-def make_seg_map(prob_map_path, dense_gt_path, key):
+def make_seg_map(prob_map_path, dense_gt_path):
     prob_map = read_h5(prob_map_path)
     dense_gt = read_h5(dense_gt_path)
     nodes_in_dgt = len(np.unique(dense_gt))
     print "nodes in dgt", nodes_in_dgt
     seed_map = wsDtSegmentation(prob_map, pmin=0.5, minMembraneSize=10, minSegmentSize=0, sigmaMinima=6, sigmaWeights=1, cleanCloseSeeds=True,
                                 returnSeedsOnly=True)
-    seg_map, sup_map, wsDt_data, agglCl_data = get_segmentation(prob_map, pmin=0.5, minMemb=10, minSeg=0, sigMin=6, sigWeights=1, sigSmooth=0.1,
+    seg_map, sup_map, wsDt_data, agglCl_data = get_segmentation(prob_map, pmin=0.5, minMemb=10, minSeg=10, sigMin=6, sigWeights=1, sigSmooth=0.1,
                                                                      cleanCloseSeeds=True, returnSeedsOnly=False, edgeLengths=None, nodeFeatures=None,
                                                                      nodeSizes=None, nodeLabels=None, nodeNumStop=nodes_in_dgt, beta=0, metric='l1',
-                                                                     wardness=1, out=None)
+                                                                     wardness=0.2, out=None)
     print "seeds", len(np.unique(seed_map))
     print "seg", len(np.unique(seg_map))
 
@@ -377,7 +377,7 @@ def make_seg_map(prob_map_path, dense_gt_path, key):
     # save_h5(ri_data, data_outpath, "rand index", None)
     # save_h5(voi_data, data_outpath, "variation of information", None)
     # save_h5(seed_map, seed_map_outpath, "data", None)
-    # save_h5(sup_map,sup_map_outpath, "data", None)
+    save_h5(sup_map,sup_map_outpath, "data", None)
     save_h5(seg_map,seg_map_outpath, "data", None)
 
     # save_h5(super_pixels, outpath, "superpixels")
@@ -385,13 +385,18 @@ def make_seg_map(prob_map_path, dense_gt_path, key):
 
 
 if __name__ == '__main__':
-    prob_map_path1= "/mnt/CLAWS1/stamilev/test_folder/compare_loops/100p_cube2_l_10000_trained_with_cube1/n_1_l_10000_w_none/prob_files/prob_6.h5"
-    prob_map_path2= "/mnt/CLAWS1/stamilev/test_folder/compare_loops/100p_cube2_l_10000_trained_with_cube1/n_2_l_10000_w_none/prob_files/prob_6.h5"
-    dense_gt_path= "/mnt/CLAWS1/stamilev/volumes/groundtruth/dense_groundtruth/100p_cube2_dense_gt.h5"
-    key = "wardness_1_nns_none"
+    # prob_map_path1= "/mnt/CLAWS1/stamilev/test_folder/q_data/100p_cube1/n_5_l_10000_w_none/prob_files/prob_4.h5"
+    # prob_map_path2= "/mnt/CLAWS1/stamilev/test_folder/q_data/100p_cube1/n_9_l_10000_w_none/prob_files/prob_8.h5"
+    # prob_map_path3= "/mnt/CLAWS1/stamilev/test_folder/q_data/100p_cube1/n_10_l_10000_w_none/prob_files/prob_9.h5"
+    # dense_gt_path= "/mnt/CLAWS1/stamilev/volumes/groundtruth/dense_groundtruth/100p_cube1_dense_gt.h5"
+    # key = "wardness_1_nns_none"
     # prob_map_paths = [p for p in ]
-    make_seg_map(prob_map_path1, dense_gt_path, key)
-    make_seg_map(prob_map_path2, dense_gt_path, key)
+    # make_seg_map(prob_map_path1, dense_gt_path)
+    # make_seg_map(prob_map_path2, dense_gt_path)
+    # make_seg_map(prob_map_path3, dense_gt_path)
+
+
+
     # predict_path1 = "/home/stamylew/test_folder/q_data/100p_cube1_t05/n_1_l_10000_w_none/100p_cube1_probs.h5"
     # predict1 = read_h5(predict_path1)
     #

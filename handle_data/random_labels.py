@@ -136,7 +136,7 @@ def limit_label(data, limit, nolp=""):
 
 
 if __name__ == '__main__':
-    a = read_h5("/mnt/CLAWS1/stamilev/ilastik_projects/labels/100p_cube2_hand_drawn_labels.h5")
+    a = read_h5("/mnt/CLAWS1/stamilev/ilastik_projects/labels/100p_cube1_generated_labels.h5")
     b = read_h5("/mnt/CLAWS1/stamilev/ilastik_projects/labels/100p_cube2_generated_labels.h5")
     # b = read_h5("/mnt/CLAWS1/stamilev/ilastik_projects/labels/100p_cube2_hand_drawn_labels.h5")
     # print get_number_of_labels(b)

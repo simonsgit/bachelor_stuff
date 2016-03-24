@@ -12,7 +12,7 @@ from subprocess import call
 from python_functions.handle_h5.handle_h5 import save_h5, read_h5
 from python_functions.other.host_config import assign_path
 from python_functions.quality.quality import adjust_predict, save_quality_values
-from python_functions.handle_data.new_modify_labels import reduce_labels_in_ilp, concentrated_labels
+from python_functions.handle_data.new_modify_labels import reduce_labels_in_ilp, check_ilp_labels, concentrated_labels
 
 #appendages for training command
 def modify_loop_number(command, n):
@@ -196,8 +196,9 @@ def test(ilp, files, gt_path, dense_gt_path, labels="", loops=3, weights="", rep
     if labels == "":
         label_tag = "all"
     else:
-        label_tag = labels
-
+        # assert labels == check_ilp_labels(ilp)
+        true_labels = check_ilp_labels(ilp)
+        label_tag = true_labels
     if weights == "":
         weight_tag = "none"
     else:
@@ -209,8 +210,11 @@ def test(ilp, files, gt_path, dense_gt_path, labels="", loops=3, weights="", rep
         filename += "_manual"
     if "hand_drawn" in ilp:
         filename += "_hand_drawn"
+    if "clever" in ilp:
+        filename += "_clever"
     if "less_feat" in ilp:
         filename += "_less_feat"
+
 
     #change labels for every test
     # if labels != "":
@@ -298,12 +302,13 @@ if __name__ == '__main__':
 
     ilp_folder = assign_path(hostname)[1]
     volumes_folder = assign_path(hostname)[2]
-    ilp_file = ilp_folder + "100p_cube4_t_05.ilp"
-    files = volumes_folder + "test_data/100p_cube5.h5/data"
-    gt_path = volumes_folder + "groundtruth/trimaps/100p_cube5_trimap_t_10.h5"
-    dense_gt_path = volumes_folder + "groundtruth/dense_groundtruth/100p_cube5_dense_gt.h5"
+    ilp_file = ilp_folder + "100p_cube2_t_05.ilp"
+    files = volumes_folder + "test_data/100p_cube1.h5/data"
+    gt_path = volumes_folder + "groundtruth/trimaps/100p_cube1_trimap_t_05.h5"
+    dense_gt_path = volumes_folder + "groundtruth/dense_groundtruth/100p_cube1_dense_gt.h5"
 
-    test(ilp_file, files, gt_path, dense_gt_path, 10000, 6, "", 7)
+    ilp = reduce_labels_in_ilp(ilp_file, 10000)
+    test(ilp, files, gt_path, dense_gt_path, 10000, 3, "", 10)
 
 
     print
