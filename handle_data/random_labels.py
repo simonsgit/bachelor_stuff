@@ -101,10 +101,10 @@ def get_number_of_unique_labels(data):
     :return: Amount of labeled pixels in data
     """
     for i in np.unique(data):
+
         labeled_pixels = data == i
         no = np.sum(labeled_pixels)
-        print i, no
-
+    return no
 
 def limit_label(data, limit, nolp=""):
     """Limits amount of labeled pixels in data array to given limit

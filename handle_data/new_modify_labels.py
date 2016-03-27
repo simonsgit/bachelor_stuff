@@ -1,7 +1,7 @@
 __author__ = 'stamylew'
 
 from subprocess import call
-from python_functions.handle_data.random_labels import get_number_of_labels, limit_label
+from python_functions.handle_data.random_labels import get_number_of_labels, get_number_of_unique_labels,  limit_label
 from python_functions.handle_h5.handle_h5 import read_h5
 import numpy as np
 from autocontext.core.ilp import ILP
@@ -144,7 +144,7 @@ if __name__ == '__main__':
     # ilp_path = "/home/stamylew/ilastik_projects/500p_cube2_less_feats.ilp"
     # mod_ilp = reduce_labels_in_ilp(ilp_path, 1000)
     # print "Amount of labeled pixels:", check_ilp_labels(mod_ilp)
-    ilp = "/mnt/CLAWS1/stamilev/ilastik_projects/100p_cubes/100p_cube2_clever_labeling.ilp"
+    ilp = "/mnt/CLAWS1/stamilev/ilastik_projects/100p_cubes/100p_cube1_clever_labeling.ilp"
     # ilp_copy = create_copy(ilp)
     manipulate_me = ILP(ilp, "/home/stamylew/delme")
 
@@ -152,10 +152,15 @@ if __name__ == '__main__':
     blocks, block_slices = manipulate_me.get_labels(0)
 
     #get number of labeled pixels in the indiviual blocks and appending them to a list
-    nolb = []
+    nol = []
+    # noil = []
     for block in blocks:
         nolib = get_number_of_labels(block)
-        nolb.append(nolib)
-    noal = float(np.sum(nolb))
+        nol.append(nolib)
+        # noilib = get_number_of_unique_labels(block)
+        # noil.append(noilib)
+    noal = float(np.sum(nol))
+    # noail = float(np.sum(noil))
     print "noal", noal
+    # print "noail", noail
 

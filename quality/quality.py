@@ -236,7 +236,7 @@ def get_quality_values(predict, gt, dense_gt, minMemb, minSeg, sigMin, sigWeight
                                                                           sigWeights, sigSmooth, True,False, edgeLengths,
                                                                           nodeFeatures, nodeSizes, nodeLabels, nodeNumStop,
                                                                           beta, metric, wardness, out)
-    save_h5(segmentation, "/home/stamylew/delme/segmap.h5", "data", None)
+
     ri_data = skl.randIndex(segmentation.flatten().astype(np.uint32), dense_gt.flatten().astype(np.uint32), True)
     voi_data = skl.variationOfInformation(segmentation.flatten().astype(np.uint32), dense_gt.flatten().astype(np.uint32), True)
     sp_ri = skl.randIndex(super_pixels.flatten().astype(np.uint32), dense_gt.flatten().astype(np.uint32), True)
@@ -385,14 +385,14 @@ def make_seg_map(prob_map_path, dense_gt_path):
 
 
 if __name__ == '__main__':
-    # prob_map_path1= "/mnt/CLAWS1/stamilev/test_folder/q_data/100p_cube1/n_5_l_10000_w_none/prob_files/prob_4.h5"
-    # prob_map_path2= "/mnt/CLAWS1/stamilev/test_folder/q_data/100p_cube1/n_9_l_10000_w_none/prob_files/prob_8.h5"
-    # prob_map_path3= "/mnt/CLAWS1/stamilev/test_folder/q_data/100p_cube1/n_10_l_10000_w_none/prob_files/prob_9.h5"
-    # dense_gt_path= "/mnt/CLAWS1/stamilev/volumes/groundtruth/dense_groundtruth/100p_cube1_dense_gt.h5"
-    # key = "wardness_1_nns_none"
-    # prob_map_paths = [p for p in ]
-    # make_seg_map(prob_map_path1, dense_gt_path)
-    # make_seg_map(prob_map_path2, dense_gt_path)
+    prob_map_path1= "/mnt/CLAWS1/stamilev/test_folder/compare_labels/100p_cube1/100p_cube1_n_3_random/n_3_l_1000.0_w_none/prob_files/prob_10.h5"
+    prob_map_path2= "/mnt/CLAWS1/stamilev/test_folder/compare_labels/100p_cube1/100p_cube1_n_3_random/n_3_l_5000.0_w_none/prob_files/prob_6.h5"
+    # prob_map_path3= "/mnt/CLAWS1/stamilev/test_folder/compare_labels/100p_cube2/random/n_3_l_5000.0_w_none/prob_files/prob_9.h5"
+    # prob_map_path3= "/mnt/CLAWS1/stamilev/test_folder/compare_labels/100p_cube2/random/n_3_l_5000.0_w_none/prob_files/prob_9.h5"
+    dense_gt_path= "/mnt/CLAWS1/stamilev/volumes/groundtruth/dense_groundtruth/100p_cube1_dense_gt.h5"
+    #
+    make_seg_map(prob_map_path1, dense_gt_path)
+    make_seg_map(prob_map_path2, dense_gt_path)
     # make_seg_map(prob_map_path3, dense_gt_path)
 
 

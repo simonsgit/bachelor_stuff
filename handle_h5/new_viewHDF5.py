@@ -64,34 +64,37 @@ if __name__ == '__main__':
     tri_cube1 = "/mnt/CLAWS1/stamilev/volumes/groundtruth/trimaps/100p_cube1_trimap_t_10.h5"
     tri_cube2 = "/mnt/CLAWS1/stamilev/volumes/groundtruth/trimaps/100p_cube2_trimap_t_05.h5"
 
+    #central paths
+    central_cube1_path = "/mnt/CLAWS1/stamilev/test_folder/compare_labels/100p_cube1/"
+    central_cube2_path = "/mnt/CLAWS1/stamilev/test_folder/compare_labels/100p_cube2/"
+
     #probability maps for loop comparison
-    central_cube1_path = "/mnt/CLAWS1/stamilev/test_folder/q_data/100p_cube1/"
-    central_cube2_path = "/mnt/CLAWS1/stamilev/test_folder/q_data/100p_cube2/"
-    prob_n_1_cube1 = central_cube1_path + "n_2_l_10000_w_none/prob_files/prob_1.h5"
-    prob_n_5_cube1 = central_cube1_path + "n_5_l_10000_w_none/prob_files/prob_4.h5"
-    prob_n_9_cube1 = central_cube1_path + "n_9_l_10000_w_none/prob_files/prob_8.h5"
-    prob_n_10_cube1 = central_cube1_path + "n_10_l_10000_w_none/prob_files/prob_9.h5"
-    prob_n_1_cube2 = central_cube2_path + "n_1_l_10000_w_none/prob_files/prob_1.h5"
-    prob_n_2_cube2 = central_cube2_path + "n_2_l_10000_w_none/prob_files/prob_2.h5"
+    prob_l_1000_cube1 = central_cube1_path + "100p_cube1_n_3_random/n_3_l_1000.0_w_none/prob_files/prob_10.h5"
+    prob_l_5000_cube1 = central_cube1_path + "100p_cube1_n_3_random/n_3_l_5000.0_w_none/prob_files/prob_6.h5"
+
+    prob_l_100_cube2 = central_cube2_path + "100p_cube2_n_3_random/n_3_l_100.0_w_none/prob_files/prob_1.h5"
+    prob_l_500_cube2 = central_cube2_path + "100p_cube2_n_3_random/n_3_l_501.0_w_none/prob_files/prob_4.h5"
+    prob_l_5000_cube2 = central_cube2_path + "100p_cube2_n_3_random/n_3_l_5000.0_w_none/prob_files/prob_9.h5"
 
     #seed maps
     # seeds_n_1_cube2 = central_cube2_path + "n_1_l_10000_w_none/seeds/prob_6.h5"
     # seeds_n_2_cube2 = central_cube2_path + "n_2_l_10000_w_none/seeds/prob_6.h5"
 
     #segmentations map
-    seg_n_1_cube1 = central_cube1_path + "n_2_l_10000_w_none/seg_maps/prob_1.h5"
-    seg_n_5_cube1 = central_cube1_path + "n_5_l_10000_w_none/seg_maps/prob_4.h5"
-    seg_n_9_cube1 = central_cube1_path + "n_9_l_10000_w_none/seg_maps/prob_8.h5"
-    seg_n_10_cube1 = central_cube1_path + "n_10_l_10000_w_none/seg_maps/prob_9.h5"
+    seg_l_1000_cube1 = central_cube1_path + "100p_cube1_n_3_random/n_3_l_1000.0_w_none/seg_maps/prob_10.h5"
+    seg_l_5000_cube1 = central_cube1_path + "100p_cube1_n_3_random/n_3_l_5000.0_w_none/seg_maps/prob_6.h5"
 
-    seg_n_1_cube2 = central_cube2_path + "n_1_l_10000_w_none/seg_maps/prob_1.h5"
-    seg_n_2_cube2 = central_cube2_path + "n_2_l_10000_w_none/seg_maps/prob_2.h5"
+    seg_l_100_cube2 = central_cube2_path + "100p_cube2_n_3_random/n_3_l_100.0_w_none/seg_maps/prob_1.h5"
+    seg_l_500_cube2 = central_cube2_path + "100p_cube2_n_3_random/n_3_l_501.0_w_none/seg_maps/prob_4.h5"
+    seg_l_5000_cube2 = central_cube2_path + "100p_cube2_n_3_random/n_3_l_5000.0_w_none/seg_maps/prob_9.h5"
 
     #super pixels
-    sup_n_1_cube1 = central_cube1_path + "n_2_l_10000_w_none/sup_maps/prob_1.h5"
-    sup_n_2_cube1 = central_cube1_path + "n_2_l_10000_w_none/sup_maps/prob_2.h5"
-    sup_n_1_cube2 = central_cube2_path + "n_1_l_10000_w_none/sup_maps/prob_1.h5"
-    sup_n_2_cube2 = central_cube2_path + "n_2_l_10000_w_none/sup_maps/prob_2.h5"
+    sup_l_1000_cube1 = central_cube1_path + "100p_cube1_n_3_random/n_3_l_1000.0_w_none/sup_maps/prob_10.h5"
+    sup_l_5000_cube1 = central_cube1_path + "100p_cube1_n_3_random/n_3_l_5000.0_w_none/sup_maps/prob_6.h5"
+
+    sup_l_100_cube2 = central_cube2_path + "100p_cube2_n_3_random/n_3_l_100.0_w_none/sup_maps/prob_1.h5"
+    sup_l_500_cube2 = central_cube2_path + "100p_cube2_n_3_random/n_3_l_501.0_w_none/sup_maps/prob_4.h5"
+    sup_l_5000_cube2 = central_cube2_path + "100p_cube2_n_3_random/n_3_l_5000.0_w_none/sup_maps/prob_9.h5"
 
     # raw_usable_data = "/home/stamylew/volumes/test_data/usable_data.h5"
     # dgt_usable_data = "/home/stamylew/volumes/groundtruth/dense_groundtruth/usable_data_dense_gt.h5"
@@ -101,12 +104,12 @@ if __name__ == '__main__':
     # dgt_cubes = (dgt_cube1, dgt_cube2)
     # tri_cubes = (tri_cube1, tri_cube2)
 
-    cube1 = (dgt_cube1, seg_n_10_cube1, seg_n_9_cube1, seg_n_5_cube1, seg_n_1_cube1, prob_n_10_cube1, prob_n_9_cube1, prob_n_5_cube1,
-             prob_n_1_cube1)
-    cube2 = (raw_cube2, dgt_cube2, tri_cube2, seg_n_2_cube2, sup_n_2_cube2, prob_n_2_cube2, seg_n_1_cube2, sup_n_1_cube2,
-             prob_n_1_cube2)
+    cube1 = (raw_cube1, dgt_cube1, seg_l_5000_cube1, sup_l_5000_cube1, prob_l_5000_cube1, seg_l_1000_cube1, sup_l_1000_cube1,
+             prob_l_1000_cube1)
+    # cube2 = (raw_cube2, dgt_cube2, tri_cube2, seg_l_5000_cube2, sup_l_5000_cube2, prob_l_5000_cube2, seg_l_500_cube2,
+    #          sup_l_500_cube2, prob_l_500_cube2, seg_l_100_cube2, sup_l_100_cube2, prob_l_100_cube2)
 
-    view_HDF5(raw_cubes)
+    view_HDF5(cube1)
     # view_HDF5((raw_usable_data, dgt_usable_data))
     # view_HDF5((big_cube2, big_dgt2))
 

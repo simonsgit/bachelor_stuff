@@ -12,8 +12,21 @@ import numpy as np
 import os
 from os.path import isfile, join, isdir
 
+def mad(a, axis=None):
+    """
+    Compute *Median Absolute Deviation* of an array along given axis.
+    """
 
-def sort_and_extract_quality_data(path, fixed_param, x_dim, measurements):
+    med = np.median(a, axis=axis)                # Median along given axis
+    if axis is None:
+        umed = med                              # med is a scalar
+    else:
+        umed = np.expand_dims(med, axis)         # Bring back the vanished axis
+    mad = np.median(np.absolute(a - umed), axis=axis)  # MAD along given axis
+
+    return mad
+
+def sort_and_extract_quality_data(path, fixed_param, x_dim, measurements, median):
     """
     :param path:
     :param fixed_param:
@@ -24,7 +37,7 @@ def sort_and_extract_quality_data(path, fixed_param, x_dim, measurements):
     data_folders = [f for f in os.listdir(path) if (isdir(path)) and (fixed_param in f) and ("h5" not in f)]
 
     assert len(data_folders) > 0, "No folders fit the criteria"
-    print data_folders
+    # print "data_folders", data_folders
 
     # Create labels for plot
     if "n_" in fixed_param:
@@ -67,21 +80,27 @@ def sort_and_extract_quality_data(path, fixed_param, x_dim, measurements):
             x_param = x_param[0]
             x_values.append(x_param)
             measurement_data = read_h5(h5file_path, "quality/"+str(measurement))
-            mean.append(np.mean(measurement_data))
-            std.append(np.std(measurement_data))
+            if median:
+                mean.append(np.median(measurement_data))
+                std.append(mad(measurement_data))
+            else:
+                mean.append(np.mean(measurement_data))
+                std.append((np.std(measurement_data)))
         data.append((str(measurement), x_values, mean, std))
-
+        print "mean", mean
+        print "std", std
+        print
     return x_dim, data, fixed_value,
 
 
-def create_plot(input_path, fixed_param, x_dim, measurements, save_fig = False):
+def create_plot(input_path, fixed_param, x_dim, measurements, save_fig = False, median= False):
     """
     :param input:
     :param outpath:
     :return:
     """
 
-    x_dim, data_list, fixed_value = sort_and_extract_quality_data(input_path, fixed_param, x_dim, measurements)
+    x_dim, data_list, fixed_value = sort_and_extract_quality_data(input_path, fixed_param, x_dim, measurements, median)
 
     # Amount of plots
     n = len(data_list)
@@ -92,11 +111,11 @@ def create_plot(input_path, fixed_param, x_dim, measurements, save_fig = False):
     x_max = []
     for data in data_list:
         x_points = np.arange(len(data[1]))
-        print "x_points", x_points
+        # print "x_points", x_points
         x_min.append(min(data[1]))
         x_max.append(max(data[1]))
         xticks = data[1]
-        print "xticks", xticks
+        # print "xticks", xticks
         plt.errorbar(x_points, data[2], data[3], None, label=data[0])
         plt.xticks(x_points, xticks)
 
@@ -117,7 +136,7 @@ def create_plot(input_path, fixed_param, x_dim, measurements, save_fig = False):
         y_dim = '#pixels'
     plt.legend(loc = 'best')
     plt.title(measurements[0]+" for "+fixed_value)
-    print "xrange", xrange
+    # print "xrange", xrange
     plt.xlim(xrange)
     plt.xlabel(x_dim, fontsize=14, color='black')
     plt.ylabel(y_dim, fontsize=14, color='black')
@@ -126,30 +145,36 @@ def create_plot(input_path, fixed_param, x_dim, measurements, save_fig = False):
     # plt.show()
 
 
-def compare_plots(inpaths, fixed_params, x_dim, measurements, savefig=False):
+def compare_plots(inpaths, fixed_params, x_dim, measurements, savefig=False, median=False):
     """
     :param measurement:
     :param plot_data_sets:
     :return:
     """
 
+    if median:
+        prefix = "median "
+    else:
+        prefix = "mean "
+
     plot_data_sets = []
     for inpath in inpaths:
         data_set_name = inpath.split("/")[-1]
-        print data_set_name
+        print "data_set_name", data_set_name
         block_name = data_set_name.split("_")[0] + " " + data_set_name.split("_")[1]
-        difference = data_set_name.split("_")[2] + "=" + data_set_name.split("_")[3]
+        # difference = data_set_name.split("_")[2] + "=" + data_set_name.split("_")[3]
+        difference = ""
         individual_label = block_name\
                            #+ " with " + difference
         for fixed_param in fixed_params:
-            x_dim, data_list, fixed = sort_and_extract_quality_data(inpath, fixed_param, x_dim, measurements)
+            x_dim, data_list, fixed = sort_and_extract_quality_data(inpath, fixed_param, x_dim, measurements, median)
             plot_data_sets.append(((individual_label, difference), fixed_param, x_dim, data_list, fixed))
 
     x_min = []
     x_max = []
     plt.figure()
     for plot_data in plot_data_sets:
-        print plot_data
+        # print plot_data
         data_set_name, fixed_param, x_dim, data_list, fixed = plot_data
 
         # Plot the plots
@@ -165,8 +190,9 @@ def compare_plots(inpaths, fixed_params, x_dim, measurements, savefig=False):
                     comparison = " w.r.t. number of labels"
                 if "w" in data_set_name[1]:
                     comparison = " w.r.t. weighting"
-                title = "Comparison of "+ data[0] + comparison
-                title = "Comparison of rand index"
+                title = "Comparison of the "+ prefix + data[0]
+                # title = "Comparison of the rand index"
+                # title = "Comparison of the variation information"
 
             elif len(fixed_params) > 1:
                 label = data[0]\
@@ -177,22 +203,32 @@ def compare_plots(inpaths, fixed_params, x_dim, measurements, savefig=False):
                 title = "Comparison of " + data[0] + " between measurements"
                 comparison = str(measurements)
             x_points = np.arange(len(data[1]))
+            # print "x_points", x_points
+            # if "#labels" == x_dim:
+            #     new_x_points = []
+            #     for x in x_points:
+            #         print "x", x, data[1][x], data[1][-1]
+            #         x = float((x+1) * data[1][x]) / float(data[1][-1])
+            #         new_x_points.append(x)
+            #     x_points = new_x_points
             x_min.append(min(data[1]))
             x_max.append(max(data[1]))
             xticks = data[1]
-            plt.errorbar(x_points, data[2], data[3], None, label= label)
+            plt.errorbar(x_points, data[2], data[3], None, label= "Validation on "+ label)
             plt.xticks(x_points, xticks)
 
         if "#loops" == x_dim or "weights" == x_dim:
             xrange = [x_points[0]-0.5, x_points[-1]+0.5]
         elif "#labels" == x_dim:
-            xrange = [min(x_min)-1000, max(x_max)+1000]
+            xrange = [x_points[0]-0.5, x_points[-1]+0.5]
+            # print xrange
 
     folder_path = inpaths[0] + "/figures/"
     print folder_path
     if not os.path.exists(folder_path):
         os.mkdir(folder_path)
     fig_name = folder_path + "Comparison_of_"+data[0] +".png"
+    # fig_name = "/mnt/CLAWS1/stamilev/delme/" + "Comparison_of_"+data[0] +".png"
     print fig_name
 
 
@@ -201,30 +237,34 @@ def compare_plots(inpaths, fixed_params, x_dim, measurements, savefig=False):
     plt.title(title)
     plt.legend(loc = 'best')
     plt.xlim(xrange)
+    print savefig
     if savefig:
         plt.savefig(fig_name)
-    plt.show()
+    # plt.show()
     plt.close()
 
 
 if __name__ == '__main__':
+
+    #loops
     path1 = "/mnt/CLAWS1/stamilev/test_folder/compare_loops/100p_cube1/100p_cube1_l_10000_random"
     path2 = "/mnt/CLAWS1/stamilev/test_folder/compare_loops/100p_cube2/100p_cube2_l_10000_random"
-    path3 = "/home/stamylew/test_folder/compare_data_size/100p_cube3_l_20000_w_none"
-    path4 = "/home/stamylew/test_folder/compare_data_size/200p_cube3_l_20000_w_none"
-    path5 = "/mnt/CLAWS1/stamilev/test_folder/compare_labels/100p_cube2/manual_less_feat"
-    path6 = "/mnt/CLAWS1/stamilev/test_folder/q_data/100p_cube2"
-    path7 = "/home/stamylew/test_folder/compare_loops/100p_cube1_l_10000_w_none"
-    path8 = "/mnt/CLAWS1/stamilev/test_folder/q_data/100p_cube2_clever"
-    # print sort_and_extract_qdata(path, "l_1000_")
 
-    compare_ignore_label_thickness = [path1, path2]
-    compare_data_size = [path3, path4]
+    #labels
+    path3 = "/mnt/CLAWS1/stamilev/test_folder/compare_labels/100p_cube1/100p_cube1_n_3_random"
+    path4 = "/mnt/CLAWS1/stamilev/test_folder/compare_labels/100p_cube2/100p_cube2_n_3_random"
+
+    #weights
+    path5 = "/mnt/CLAWS1/stamilev/test_folder/compare_weights/clever/100p_cube1"
+    path6 = "/mnt/CLAWS1/stamilev/test_folder/compare_weights/clever/100p_cube2"
+
+    path7 = "/mnt/CLAWS1/stamilev/test_folder/q_data/100p_cube1_n_3_random"
+    path8 = "/mnt/CLAWS1/stamilev/test_folder/q_data/100p_cube2_n_3_random"
+
 
     fixed_param1 = "l_10000_"
-    fixed_param2 = "l_20000_"
-    fixed_param3 = "n_3_"
-    fixed_param4 = "l_all_"
+    fixed_param2 = "n_3_"
+    fixed_param3 = "l_all_"
 
     measurement1 = "rand index"
     measurement2 = "variation of information"
@@ -235,35 +275,32 @@ if __name__ == '__main__':
     measurement7 = "true negatives"
     measurement8 = "false negatives"
     measurements = [measurement1, measurement2, measurement3, measurement4, measurement5, measurement6, measurement7, measurement8]
-    #create_plot(path1, "n_3_")
-    #x_dim, data, fixed = sort_and_extract_quality_data(path1, "l_20000_", ["precision", "recall"])
+
 
     #create loops plot
-    for measurement in measurements:
-        create_plot(path8, fixed_param4, "#loops",  [measurement], True)
+    # for measurement in measurements:
+    #     create_plot(path8, fixed_param3, "#labels", [measurement], True)
 
     #create labels plot
     # for measurement in measurements:
+    #     print "measure", measurement
     #     create_plot(path5, fixed_param3, "#labels", [measurement], True)
 
     #create weights plot
     # for measurement in measurements:
     #     create_plot(path6, fixed_param3, "weights", [measurement], True)
 
+    #compare loops
     # compare_plots([path1, path2], [fixed_param1], "#loops", [measurement2], True)
+
+    #compare labels
+    # compare_plots([path3, path4], [fixed_param2], "#labels", [measurement2], True)
+
+    #compare weights
+    compare_plots([path5, path6], [fixed_param2], "weights", [measurement1], True, True)
     # print data
 
 
-
-    # s = sort_and_extract_qdata(path1, "n_3_")
-    # t = sort_and_extract_qdata(path1, "n_4_")
-    # u = sort_and_extract_qdata(path1, "n_5_")
-    # v = sort_and_extract_qdata(path1, "n_6_")
-    # w = sort_and_extract_qdata(path1, "n_7_")
-    # x = sort_and_extract_qdata(path1, "n_8_")
-    # y = sort_and_extract_qdata(path1, "n_9_")
-    # z = sort_and_extract_qdata(path1, "n_10")
-
-
-    #compare_plots("pre", (q,r))
-
+    # data = [0.884,0.870,0.885,0.984,0.982,0.980,0.857,0.982,0.983,0.983]
+    # print np.median(data)
+    # print mad(data)
